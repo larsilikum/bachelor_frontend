@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "pinia": "^2.0.35",
     "vue": "^3.2.47",
     "vue-router": "^4.1.6",
     "wikibase-sdk": "^9.1.0"
