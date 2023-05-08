@@ -96,8 +96,9 @@ onMounted(() => {
       const size = (p5.width + p5.height) / 15
       for (let x = 0; x < xMax; x ++) {
         for (let y = 0; y < yMax; y ++) {
-          const diff = isSymbol ? Math.random() * (x * 10 + y * 20 ) * ((p5.sin(y/(Math.random() * 3 + 5)) * x) % (xMax + 5)): 0
-          const radius = p5.constrain(size / p5.sqrt(pixelVals[x][y] + 1 + diff) - size / ( 14 + diff ), 0, size)
+          const diff = isSymbol ? (p5.noise(x/25,y/25) - (0.31 + pixelVals[x][y]/5000)) * 70 : 0
+          const div = isSymbol ? diff / 5 : 0
+          const radius = p5.constrain(size / (p5.sqrt(pixelVals[x][y] + 1 ) + diff) - size / ( 14 + div), 0, size)
           p5.circle(x * spacing, y * spacing, radius)
         }
       }
