@@ -1,4 +1,29 @@
+@font-face {
+    font-family: 'Lunchtype';
+    src: url("assets/fonts/lunchtype22-regular-webfont.woff2");
+}
+@font-face {
+    font-family: 'Lunchtype';
+    src: url("assets/fonts/lunchtype23-regular-italic-webfont.woff2");
+    font-style: italic;
+}
+* {
+    font-family: Lunchtype, sans-serif;
+}
+:root {
+    --pri: #000;
+    font-size: 18px;
+    line-height: 1.2;
+}
+
 body {
     padding: 0;
     margin: 0;
+    background-color: #E8CFCF;
+}
+
+.big-type {
+    font-family: Lunchtype, sans-serif;
+    font-size: 30px;
+    text-transform: uppercase;
 }

@@ -1,9 +1,6 @@
 <template>
   <header>
-    <nav>
-      <router-link to="/">Home</router-link>
-      <router-link to="/item/Q13">Item</router-link>
-    </nav>
+    <nav-bar/>
   </header>
   <main>
     <router-view></router-view>
@@ -12,6 +9,7 @@
 
 <script setup>
 import {onMounted} from "vue";
+import NavBar from "./components/NavBar.vue";
 
 // request the generated URL with your favorite HTTP request library
 onMounted(async () => {
@@ -20,6 +18,6 @@ onMounted(async () => {
 
 <style scoped>
 main {
-  background-color: #E8CFCF;
+  margin-top: 50px;
 }
 </style>

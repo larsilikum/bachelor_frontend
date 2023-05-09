@@ -133,7 +133,7 @@ onMounted(() => {
 
 <style scoped>
 #canvas-container {
-  width: 70vw;
+  width: 100%;
   height: 90vh;
   display: flex;
   justify-content: center;
