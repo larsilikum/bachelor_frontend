@@ -181,7 +181,7 @@ onMounted(() => {
           const div = isSymbol ? diff / 5 : 0
           const radius = b.lerp(b.constrain(size / (Math.sqrt(pixelVals[x][y] + 1) + diff) - size / (14 + div), 0, size), spacing, it / 6)
 
-          if(it > 0) b.fill(b.lerpColor(b.color(0),pixelColors[x][y], it/6))
+          if(it > 0) b.fill(b.lerpColor(b.color(0, b.alpha(pixelColors[x][y])),pixelColors[x][y], it/6))
           b.circle(x * spacing, y * spacing, radius)
         }
       }
