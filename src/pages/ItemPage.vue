@@ -24,7 +24,7 @@
         takimata sanctus est Lorem ipsum dolor sit amet.
       </p>
     </div>
-    <image-filter class="image" image-path="src/assets/trump.jpg"/>
+    <image-filter class="image" image-path="src/assets/othala.png"/>
   </article>
 </template>
 
