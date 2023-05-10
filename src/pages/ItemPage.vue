@@ -1,27 +1,17 @@
 <template>
   <article>
-    <div class="info">
-      <h1 class="big-type">Collage</h1>
+    <div class="info" v-if="item">
+      <h1 class="big-type">{{item.title}}</h1>
       <p class="trigger">
-        CONTAINS <br>
-        glorification of war <br>
-        Lorem ipsum <br>
-        Dolor adiscipit amet
+        CONTAINS: <br>
+        <span v-for="trigger in item.trigger">{{trigger.trigger_id.title}} <br></span>
       </p>
       <p class="meta">
-        POSTED: <span>05 06 2019</span><br>
+        <span v-show="item.uploaded">POSTED: {{item.uploaded}}<br></span>
         SOURCE: TWITTER <br>
-        UPLOADED: 12 07 2023 <br>
-        FILE: .JPG <br>
-        FILESIZE: 12KB
+        UPLOADED: {{new Date(item.date_created).toLocaleDateString('en-GB', dateOptions)}} <br>
       </p>
-      <p class="description">
-        Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et
-        dolore magna aliquyam erat, sed diam <strong>voluptua</strong>. At vero eos et accusam et justo duo dolores et ea rebum. Stet
-        clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet,
-        <strong>consetetur sadipscing elitr</strong>, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed
-        diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea
-        takimata sanctus est Lorem ipsum dolor sit amet.
+      <p class="description" v-html="item.description">
       </p>
     </div>
     <image-filter class="image" image-path="src/assets/othala.png"/>
@@ -40,9 +30,14 @@ const getItemById = itemStore.getItemById
 const item = ref(undefined)
 const route = useRoute()
 
-onMounted(() => {
-  // itemStore.fetchItemById(route.params.id)
-  // item.value = getItemById(route.params.id)
+const dateOptions = {
+  year: 'numeric',
+  month: 'numeric',
+  day: 'numeric'
+}
+
+onMounted(async() => {
+  item.value = await getItemById(route.params.id)
 })
 </script>
 

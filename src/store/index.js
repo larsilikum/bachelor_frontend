@@ -1,11 +1,8 @@
 import { defineStore } from 'pinia'
-import { WBK } from 'wikibase-sdk'
-const wbk = WBK({
-    instance: 'https://localhost',
-    sparqlEndpoint: 'http://localhost:8834/proxy/wdqs/bigdata/namespace/wdq/sparql' // Required to use `sparqlQuery` and `getReverseClaims` functions, optional otherwise
-})
 
-const headers = { 'User-Agent': '<client name>/<version> (<contact information>) <library/framework name>/<version>' }; // see https://meta.wikimedia.org/wiki/User-Agent_policy
+import { Directus } from '@directus/sdk'
+
+const directus = new Directus('http://localhost:8055');
 
 export const useItemStore = defineStore('item', {
     state: () => ({
@@ -16,35 +13,32 @@ export const useItemStore = defineStore('item', {
             return this.items
         },
         getItemById: (state) => {
-            return (id) => {
-                return state.items.find(i => i.id === id)
+            return async(id) => {
+                const item = state.items.find(i => i.id === id)
+                if(item) return item
+                return await state.fetchItemById(id)
 
             }
         }
     },
     actions: {
-        fetchItems() {
-            this.items = [{title: 'test', description: 'test description', id: '0'}]
+        async fetchItems() {
+            const response = await directus.items('item').readByQuery({
+                fields: ['*.*.*']
+            })
+            console.log(response.data)
         },
         async fetchItemById(id) {
-            const sparql =
-                `
-                SELECT ?source ?sourceLabel ?innerwikiLabel ?display (group_concat(distinct ?ref ;separator=", ") as ?refs)
-                WHERE {
-                    OPTIONAL { 
-                        wd:${id} wdt:P4 ?source ;
-                               wdt:P5 ?innerwiki ;
-                               wdt:P6 ?display ;
-                               wdt:P7 ?ref . 
-                      }
-                SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-                } 
-                group by ?source ?sourceLabel ?innerwikiLabel ?display
-                LIMIT 100
-                `
-            const url = wbk.sparqlQuery(sparql)
-            const response = await fetch(url)
-            console.table((await response.json()).results.bindings)
+            const response = await directus.items('item').readByQuery({
+                fields: ['*.*.*'],
+                filter: {
+                    id
+                }
+            })
+            const item = response.data[0]
+            this.items.push(item)
+            console.log(item)
+            return item
         }
     }
 })

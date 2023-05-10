@@ -9,11 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@directus/sdk": "^10.3.3",
     "p5": "^1.6.0",
     "pinia": "^2.0.35",
     "vue": "^3.2.47",
-    "vue-router": "^4.1.6",
-    "wikibase-sdk": "^9.1.0"
+    "vue-router": "^4.1.6"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.1.0",
