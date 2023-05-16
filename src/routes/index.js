@@ -1,6 +1,7 @@
 import Home from "../pages/Home.vue"
 import ItemPage from "../pages/ItemPage.vue"
 import {createRouter, createWebHashHistory} from "vue-router"
+import MapPage from "../pages/MapPage.vue";
 
 const routes = [
     {
@@ -10,6 +11,10 @@ const routes = [
     {
         path: '/item/:id',
         component: ItemPage
+    },
+    {
+        path: '/map',
+        component: MapPage
     }
 ]
 

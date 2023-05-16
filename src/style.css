@@ -9,9 +9,10 @@
 }
 * {
     font-family: Lunchtype, sans-serif;
+    color: var(--pri);
 }
 :root {
-    --pri: #000;
+    --pri: #331917;
     font-size: 18px;
     line-height: 1.2;
 }
@@ -19,7 +20,7 @@
 body {
     padding: 0;
     margin: 0;
-    background-color: #E8CFCF;
+    background-color: #CBDED0;
 }
 
 .big-type {

@@ -30,7 +30,7 @@ export const useItemStore = defineStore('item', {
         },
         async fetchItemById(id) {
             const response = await directus.items('item').readByQuery({
-                fields: ['*.*.*'],
+                fields: ['*.*.*.*', 'display.image.*'],
                 filter: {
                     id
                 }

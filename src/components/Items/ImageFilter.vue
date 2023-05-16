@@ -6,8 +6,9 @@
 import {onMounted, ref} from "vue"
 import P5 from 'p5'
 
-const props = defineProps(['imagePath'])
-const imagePath = ref('src/assets/test.png')
+const provider = 'http://localhost:8055'
+const imgApi = provider + '/assets/'
+const props = defineProps(['display'])
 const container = ref(null)
 
 onMounted(() => {
@@ -22,15 +23,19 @@ onMounted(() => {
     let pixelColors = []
     let spacing = 7
     let buffer = []
+    let font
+    let c = p5.color( '#331917' )
     let i = {
       width: 0,
       height: 0
     }
     p5.preload = _ => {
-      img = p5.loadImage(props.imagePath)
+      if(props.display.image) img = p5.loadImage(imgApi + props.display.image.id)
+      else font = p5.loadFont('src/assets/fonts/Lunchtype22-Regular.ttf')
     }
     p5.setup = _ => {
       // calculate size
+      if(!props.display.image) img = p5.createTextImage(props.display.text)
       p5.calcImageSize()
       const canvas = p5.createCanvas(i.width, i.height)
       canvas.parent("canvas-container")
@@ -169,7 +174,7 @@ onMounted(() => {
       let b = p5.createGraphics(width, height)
 
       b.clear()
-      b.fill(0)
+      b.fill(c)
       b.noStroke()
 
       const xMax = Math.floor(b.width / spacing)
@@ -181,10 +186,31 @@ onMounted(() => {
           const div = isSymbol ? diff / 5 : 0
           const radius = b.lerp(b.constrain(size / (Math.sqrt(pixelVals[x][y] + 1) + diff) - size / (14 + div), 0, size), spacing, it / 6)
 
-          if(it > 0) b.fill(b.lerpColor(b.color(0, b.alpha(pixelColors[x][y])),pixelColors[x][y], it/6))
+          if(it > 0) b.fill(b.lerpColor(b.color(c, b.alpha(pixelColors[x][y])),pixelColors[x][y], it/6))
           b.circle(x * spacing, y * spacing, radius)
         }
       }
+      return b
+    }
+    p5.createTextImage = (text) => {
+      p5.textFont(font)
+      p5.textSize(150)
+      let width = p5.textWidth(text)
+      let height = 150
+      const dim = width / height
+      if(width > 1440) {
+        width = 1440
+        height = width / dim
+      } else {
+        height = container.value.clientHeight - 20
+        width = dim * height
+      }
+      const b = p5.createGraphics(width + 20, height + 20)
+      b.textFont(font)
+      b.textSize(height)
+      const textWidth = b.textWidth(text)
+      const margin = (width - textWidth) / 2
+      b.text(text, margin, height - height/5)
       return b
     }
   }
@@ -195,11 +221,11 @@ onMounted(() => {
 <style scoped>
 #canvas-container {
   width: 100%;
-  height: 90vh;
+  height: calc(100vh - 120px);
   display: flex;
   justify-content: center;
   align-items: center;
-  outline: 2px solid black;
+  outline: 2px solid var(--pri);
 
 }
 </style>

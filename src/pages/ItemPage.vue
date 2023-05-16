@@ -1,20 +1,20 @@
 <template>
   <article>
     <div class="info" v-if="item">
-      <h1 class="big-type">{{item.title}}</h1>
+<!--      <h1 class="big-type">{{item.title}}</h1>-->
       <p class="trigger">
         CONTAINS: <br>
         <span v-for="trigger in item.trigger">{{trigger.trigger_id.title}} <br></span>
       </p>
       <p class="meta">
         <span v-show="item.uploaded">POSTED: {{item.uploaded}}<br></span>
-        SOURCE: TWITTER <br>
+        SOURCE: <a v-if="item.source" :href="item.source.url" target="_blank">{{item.source.title}}</a><br>
         UPLOADED: {{new Date(item.date_created).toLocaleDateString('en-GB', dateOptions)}} <br>
       </p>
       <p class="description" v-html="item.description">
       </p>
     </div>
-    <image-filter class="image" image-path="src/assets/othala.png"/>
+    <image-filter class="display" v-if="item" :display="item.display"/>
   </article>
 </template>
 
@@ -22,7 +22,8 @@
 import {onMounted, ref} from "vue";
 import {useItemStore} from "../store/index.js";
 import {useRoute} from "vue-router";
-import ImageFilter from "../components/ImageFilter.vue";
+import DisplayComponent from "../components/Items/DisplayComponent.vue";
+import ImageFilter from "../components/Items/ImageFilter.vue";
 
 const itemStore = useItemStore()
 const getItemById = itemStore.getItemById
@@ -51,8 +52,11 @@ article {
 .info {
   grid-column: 1 / span 3;
 }
-.image {
+.display {
   grid-column: 5 / span 12;
+  position: sticky;
+  top: 60px;
+  right: 0;
 }
 
 /** text styles **/
@@ -75,15 +79,18 @@ p {
 .description {
   text-align: justify;
 }
-strong {
+:deep(strong) {
   font-weight: normal;
   -webkit-text-stroke-width: 10px;
-  transition: 300ms ease-out;
 }
-strong:hover {
+:deep(strong:hover) {
   animation: stroke-width 300ms linear;
   animation-fill-mode: forwards;
   -webkit-text-stroke-width: 0;
+}
+
+:deep(a), a {
+  color: var(--pri);
 }
 
 @keyframes stroke-width {
