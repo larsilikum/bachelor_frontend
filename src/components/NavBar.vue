@@ -1,7 +1,7 @@
 <template>
   <nav>
     <router-link to="/map" class="big-type">map</router-link>
-    <router-link to="/" class="big-type">signs of hate</router-link>
+    <router-link to="/" class="big-type">communicating hate</router-link>
   </nav>
 </template>
 

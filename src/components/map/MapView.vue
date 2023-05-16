@@ -5,8 +5,15 @@
 <script setup>
 import go from 'gojs';
 import {onMounted, ref} from "vue";
+import {useItemStore} from "../../store/index.js";
+import {useRouter} from "vue-router";
+
+const itemStore = useItemStore()
+const router = useRouter()
 
 const myDiagramRef = ref(null);
+
+const highlightColor = '#ef3920'
 
 class WheelLayout extends go.CircularLayout {
   // override makeNetwork to set the diameter of each node and ignore the TextBlock label
@@ -53,19 +60,19 @@ class WheelLayout extends go.CircularLayout {
   }
 }
 
-onMounted(() => {
-  const items = generateDummyItems();
-  const categories = generateDummyCategories();
+onMounted(async () => {
+  const items = await itemStore.fetchItems()
+  console.log(items)
 
   const myDiagram = go.GraphObject.make(go.Diagram, myDiagramRef.value, {
     initialAutoScale: go.Diagram.Uniform,
-    padding: 10,
+    padding: 50,
     contentAlignment: go.Spot.Center,
     layout: go.GraphObject.make(WheelLayout, {
       arrangement: go.CircularLayout.ConstantDistance,
       nodeDiameterFormula: go.CircularLayout.Circular,
       spacing: 10,
-      aspectRatio: 0.7,
+      aspectRatio: 1,
       sorting: go.CircularLayout.Optimized
     }),
     isReadOnly: true,
@@ -77,31 +84,48 @@ onMounted(() => {
   });
 
   myDiagram.nodeTemplate = go.GraphObject.make(go.Node, 'Horizontal', {
-    selectionAdorned: false,
-    locationSpot: go.Spot.Center,
-    locationObjectName: 'SHAPE',
-    mouseEnter: (e, node) => {
-      node.diagram.clearHighlighteds();
-      node.linksConnected.each((l) => highlightLink(l, true));
-      node.isHighlighted = true;
-      const tb = node.findObject('TEXTBLOCK');
-      if (tb !== null) tb.stroke = highlightColor;
-    },
-    mouseLeave: (e, node) => {
-      node.diagram.clearHighlighteds();
-      const tb = node.findObject('TEXTBLOCK');
-      if (tb !== null) tb.stroke = 'black';
-    }
-  }, new go.Binding('text', 'text'), go.GraphObject.make(go.Shape, 'Ellipse', {
-    name: 'SHAPE',
-    fill: 'lightgray',
-    stroke: 'transparent',
-    strokeWidth: 2,
-    desiredSize: new go.Size(20, 20),
-    portId: ''
-  }, new go.Binding('fill', 'color'), new go.Binding('stroke', 'isHighlighted', (h) => (h ? highlightColor : 'transparent')).ofObject()), go.GraphObject.make(go.TextBlock, {
-    name: 'TEXTBLOCK'
-  }, new go.Binding('text', 'text')));
+        selectionAdorned: false,
+        locationSpot: go.Spot.Center,
+        locationObjectName: 'SHAPE',
+        mouseEnter: (e, node) => {
+          node.diagram.clearHighlighteds();
+          node.linksConnected.each((l) => highlightLink(l, true));
+          node.isHighlighted = true;
+          const tb = node.findObject('TEXTBLOCK');
+          if (tb !== null) {
+            tb.stroke = highlightColor;
+            tb.opacity = 1;
+          }
+        },
+        mouseLeave: (e, node) => {
+          node.diagram.clearHighlighteds();
+          const tb = node.findObject('TEXTBLOCK');
+          if (tb !== null) {
+            tb.stroke = 'transparent';
+            tb.opacity = 0;
+          }
+        },
+        click: (e, node) => {
+          router.push({name: 'Item', params: {id: node.data.key}})
+        }
+      }, new go.Binding('text', 'text'),
+      go.GraphObject.make(go.Shape, 'Ellipse', {
+            name: 'SHAPE',
+            fill: 'lightgray',
+            stroke: 'transparent',
+            strokeWidth: 2,
+            desiredSize: new go.Size(10, 10),
+            portId: '',
+          }, new go.Binding('fill', 'color'),
+          new go.Binding('stroke', 'isHighlighted', (h) => (h ? highlightColor : 'transparent')).ofObject(),
+          new go.Binding('desiredSize', 'references', (refs) => {
+            const size = calculateNodeSize(refs);
+            return new go.Size(size, size);
+          })),
+      go.GraphObject.make(go.TextBlock, {
+        name: 'TEXTBLOCK',
+        opacity: 0
+      }, new go.Binding('text', 'text')));
 
   function highlightLink(link, show) {
     link.isHighlighted = show;
@@ -115,54 +139,15 @@ onMounted(() => {
     selectionAdorned: false,
     mouseEnter: (e, link) => highlightLink(link, true),
     mouseLeave: (e, link) => highlightLink(link, false)
-  }, go.GraphObject.make(go.Shape, new go.Binding('stroke', 'isHighlighted', (h, shape) => (h ? highlightColor : shape.part.data.color)).ofObject(), new go.Binding('strokeWidth', 'isHighlighted', (h) => (h ? 2 : 1)).ofObject()));
-  function generateDummyItems() {
-    // Replace with your actual item data
-    return [
-      {
-        id: 'item1',
-        title: 'Item 1',
+  }, go.GraphObject.make(go.Shape, new go.Binding('stroke', 'isHighlighted', (h, shape) => (h ? highlightColor : 'transparent')).ofObject(), new go.Binding('strokeWidth', 'isHighlighted', (h) => (h ? 2 : 1)).ofObject()));
 
-
-        category: 'category1',
-        references: ['item2', 'item3']
-      },
-      {
-        id: 'item2',
-        title: 'Item 2',
-        category: 'category2',
-        references: ['item1']
-      },
-      {
-        id: 'item3',
-        title: 'Item 3',
-        category: 'category1',
-        references: ['item1']
-      }
-    ];
-  }
-
-  function generateDummyCategories() {
-    // Replace with your actual category data
-    return [
-      {
-        id: 'category1',
-        title: 'Category 1',
-        subCategories: []
-      },
-      {
-        id: 'category2',
-        title: 'Category 2',
-        subCategories: []
-      }
-    ];
-  }
 
   function generateGraph() {
     const nodeDataArray = items.map((item) => ({
       key: item.id,
       text: item.title,
-      color: go.Brush.randomColor(128, 240)
+      color: '#331917',
+      references: item.references ? item.references.length : 0
     }));
 
     const linkDataArray = [];
@@ -170,7 +155,7 @@ onMounted(() => {
       item.references.forEach((reference) => {
         linkDataArray.push({
           from: item.id,
-          to: reference,
+          to: reference.related_item_id.id,
           color: go.Brush.randomColor(0, 127)
         });
       });
@@ -179,15 +164,25 @@ onMounted(() => {
     myDiagram.model = new go.GraphLinksModel(nodeDataArray, linkDataArray);
   }
 
+  function calculateNodeSize(numConnections) {
+    if (numConnections === 0) {
+      return 10;
+    } else if (numConnections === 1) {
+      return 11;
+    } else {
+      return Math.round(Math.pow(1.3, numConnections - 2) * 13);
+    }
+  }
+
   generateGraph();
 });
-
 
 
 </script>
 <style>
 #myDiagramDiv {
   width: 100%;
-  height: 100vh;
+  height: calc(100vh - 100px);
+  border: 2px solid var(--pri);
 }
 </style>

@@ -10,6 +10,7 @@ const routes = [
     },
     {
         path: '/item/:id',
+        name: 'Item',
         component: ItemPage
     },
     {

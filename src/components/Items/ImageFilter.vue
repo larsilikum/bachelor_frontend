@@ -71,8 +71,8 @@ onMounted(() => {
 
     p5.mouseMoved = _ => {
       if (p5.mouseX >= 0 && p5.mouseX < p5.width && p5.mouseY >= 0 && p5.mouseY < p5.height) {
-        isHovering = true
-        p5.loop()
+        // isHovering = true
+        // p5.loop()
       } else if (isHovering) {
         isHovering = false
       }

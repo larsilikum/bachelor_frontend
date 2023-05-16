@@ -26,7 +26,7 @@ export const useItemStore = defineStore('item', {
             const response = await directus.items('item').readByQuery({
                 fields: ['*.*.*']
             })
-            console.log(response.data)
+            return response.data
         },
         async fetchItemById(id) {
             const response = await directus.items('item').readByQuery({
