@@ -24,7 +24,7 @@ export const useItemStore = defineStore('item', {
     actions: {
         async fetchItems() {
             const response = await directus.items('item').readByQuery({
-                fields: ['*.*.*.*']
+                fields: ['*.*.*.*.*']
             })
             this.items = response.data
         },
