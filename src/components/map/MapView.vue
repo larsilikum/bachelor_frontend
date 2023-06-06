@@ -1,5 +1,14 @@
 <template>
-  <div id="map" ref="map"></div>
+  <div id="map-container">
+    <aside id="side">
+      <p class="big-type" id="title">{{elementTitle}}</p>
+      <template v-if="connections.length">
+        <p class="big-type">Connected Items:</p>
+        <span v-for="connection in connections">{{connection.related_item_id.title}}<br></span>
+      </template>
+    </aside>
+    <div id="map" ref="map"></div>
+  </div>
 </template>
 
 <script setup>
@@ -12,6 +21,9 @@ const store = useItemStore()
 const router = useRouter()
 const map = ref(null);
 const elements = ref([])
+const elementTitle = ref("No item selected")
+const elementColor = ref("#331917")
+const connections = ref([])
 const dimensions = ref({
   width: 1920,
   height: 900
@@ -19,8 +31,9 @@ const dimensions = ref({
 
 
 onMounted(async() => {
-  elements.value = createFakeData()
-
+  elements.value = await store.getItems
+  dimensions.value.width = map.value.clientWidth
+  dimensions.value.height = map.value.clientHeight
   const categoryCounts = {
     text: 0,
     image: 0,
@@ -32,16 +45,17 @@ onMounted(async() => {
         ? element.category.parentCategory.title
         : element.category.title;
     categoryCounts[category]++
-    if(category === 'text') element.color = '#344759'
-    else if(category === 'person') element.color = '#6B561E'
-    else if(category === 'image') element.color = '#535810'
-    else if(category === 'symbol') element.color = '#6F3821'
+    if(category === 'text') element.color = '#AB4DC7'
+    else if(category === 'person') element.color = '#942317'
+    else if(category === 'image') element.color = '#048ECA'
+    else if(category === 'symbol') element.color = '#543A0A'
+
+    element.connectedElementIds = element.references.map(ref => ref.related_item_id.id);
   })
 
 
   // Determine grid size based on the category with the most elements
   const gridSize = Math.ceil(Math.sqrt(Math.max(...Object.values(categoryCounts)) * 10 ));
-  console.log(gridSize)
 
   // Create the grid
   const grid = Array.from({ length: gridSize }, () => Array(gridSize).fill(null));
@@ -57,8 +71,11 @@ onMounted(async() => {
   const referenceCounts = new Map();
 
   elements.value.forEach(element => {
+
     element.references.forEach(reference => {
       const referencedId = reference.related_item_id.id;
+      const relEl = elements.value.find(el => el.id === referencedId)
+      if(relEl) relEl.connectedElementIds.push(element.id)
       if (referenceCounts.has(referencedId)) {
         referenceCounts.set(referencedId, referenceCounts.get(referencedId) + 1);
       } else {
@@ -72,6 +89,7 @@ onMounted(async() => {
   elements.value.forEach(element => {
     // Add logic if element is hovered
     element.isHovered = false
+    element.connectionIsHovered = false
 
     // Add a referenceCount property to each element
     element.referenceCount = referenceCounts.get(element.id) || 0;
@@ -128,7 +146,6 @@ onMounted(async() => {
       x: Math.floor((avgPosition.x / dimensions.value.width) * gridSize),
       y: Math.floor((avgPosition.y / dimensions.value.height) * gridSize),
     };
-    console.log(count, element.id, avgPosition, cellPosition)
     // Get closest available cell
     let availableCell = getClosestAvailableCell(grid, cellPosition.x, cellPosition.y);
 
@@ -146,18 +163,6 @@ onMounted(async() => {
   elements.value.sort((a , b) => b.radiusSize - a.radiusSize)
 
 
-  // Draw circles...
-  const circles = svg.selectAll("circle")
-      .data(elements.value)  // bind elements to circles
-      .enter().append("circle")  // create new circle for each element
-      .attr("r", d => d.radiusSize)  // radius depends on number of references
-      .attr("cx", d => d.x)  // random x position
-      .attr("cy", d => d.y) // random y position
-      .style("stroke", "#331917")
-      .style("stroke-width", 1)
-      .style("fill", "#331917")
-      .style("opacity", 0.8)
-
   // Draw lines...
   const lines = svg.selectAll("line")
       .data(linesData)
@@ -167,20 +172,22 @@ onMounted(async() => {
       .attr("x2", d => d.target.x)
       .attr("y2", d => d.target.y)
       .style("stroke", "#331917")
-      .style("stroke-width", 2)
+      .style("stroke-width", 4)
       .style("pointer-events", "none")
       .style("opacity", 0)
 
-  // Draw text
-  const texts = svg.selectAll("text")
-      .data(elements.value)
-      .enter().append("text")
-      .attr("x", d => d.x + d.radiusSize + 8)  // position text 8px to the right of the circle
-      .attr("y", d => d.y + 7)  // align the vertical position of the text with the circle
-      .text(d => d.title)  // set the text content to the element's title
-      .style("font-size", "20px")  // set the font size
-      .style("pointer-events", "none")
-      .style("opacity", 0);  // hide the text initially
+  // Draw circles...
+  const circles = svg.selectAll("circle")
+      .data(elements.value)  // bind elements to circles
+      .enter().append("circle")  // create new circle for each element
+      .attr("r", d => d.radiusSize)  // radius depends on number of references
+      .attr("cx", d => d.x)  // random x position
+      .attr("cy", d => d.y) // random y position
+      .style("stroke", "#331917")
+      .style("stroke-width", 2)
+      .style("fill", "transparent")
+      .style("cursor", "pointer")
+
 
 
   // Handle interactions...
@@ -188,14 +195,36 @@ onMounted(async() => {
       .on("mouseenter", (event, data) => {
         // Handle mouse enter...
         data.isHovered = true
-        lines.style("opacity", d => d.source.isHovered || d.target.isHovered ? 0.8 : 0)
-        texts.style("opacity", d => d.isHovered ? 1 : 0)
+        elementColor.value = data.color
+        elementTitle.value = data.title
+        connections.value = data.references
+        data.connectedElementIds.forEach(id => {
+          const connectedElement = elements.value.find(e => e.id === id);
+          if(!connections.value.find(e => e.related_item_id.id === connectedElement.id)) connections.value.push({related_item_id: connectedElement})
+          if (connectedElement) connectedElement.connectionIsHovered = true;
+        });
+        circles
+            .style("stroke", d => d.isHovered || d.connectionIsHovered ? d.color : "#331917")
+            .style("stroke-width", d => d.isHovered || d.connectionIsHovered ? 4 : 2)
+            .style("fill", d => d.isHovered || d.connectionIsHovered ? "#331917" : "transparent")
+        lines
+            .style("opacity", d => d.source.isHovered || d.target.isHovered ? 1 : 0)
       })
       .on("mouseleave", (event, data) => {
         // Handle mouse leave...
         data.isHovered = false
-        lines.style("opacity", d => d.source.isHovered || d.target.isHovered ? 0.8 : 0)
-        texts.style("opacity", d => d.isHovered ? 1 : 0);
+        elementTitle.value = "No item selected"
+        elementColor.value = "#331917"
+        connections.value = []
+        data.connectedElementIds.forEach(id => {
+          const connectedElement = elements.value.find(e => e.id === id);
+          if (connectedElement) connectedElement.connectionIsHovered = false;
+        });
+        circles
+            .style("stroke", "#331917")
+            .style("stroke-width", 2)
+            .style("fill", "transparent")
+        lines.style("opacity", 0)
       })
       .on("click", (event, data) => {
         router.push('/item/' + data.id)
@@ -280,7 +309,23 @@ function createFakeData(numElements = 150) {
 
 </script>
 <style>
-#map {
-  background-color: #DEDEDE;
+#map-container {
+  display: flex;
+  height: calc(100vh - 60px);
+  overflow-y: hidden;
+  padding: 0 10px 10px 10px;
 }
+#side {
+  flex: 1;
+  flex-shrink: 0;
+}
+#title {
+  color: v-bind(elementColor);
+}
+#map {
+  background-color: #CBCACA;
+  flex: 5;
+  border: 2px solid var(--pri);
+}
+
 </style>
