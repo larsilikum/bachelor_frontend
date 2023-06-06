@@ -2,8 +2,8 @@
   <div id="map-container">
     <aside id="side">
       <p class="big-type" id="title">{{elementTitle}}</p>
+      <p class="big-type">Connected Items:</p>
       <template v-if="connections.length">
-        <p class="big-type">Connected Items:</p>
         <span v-for="connection in connections">{{connection.related_item_id.title}}<br></span>
       </template>
     </aside>
@@ -32,8 +32,20 @@ const dimensions = ref({
 
 onMounted(async() => {
   elements.value = await store.getItems
+  const categories = await store.getCategories
+  console.log(categories)
+
   dimensions.value.width = map.value.clientWidth
   dimensions.value.height = map.value.clientHeight
+
+  const mainCategoryCounts = categories.reduce((acc, cat) => {
+      let key = cat.parentCategory ? cat.parentCategory.title : cat.title;
+      acc[key] = (acc[key] || [])
+      acc[key].push(cat)
+
+    return acc;
+  }, {});
+
   const categoryCounts = {
     text: 0,
     image: 0,
@@ -55,7 +67,7 @@ onMounted(async() => {
 
 
   // Determine grid size based on the category with the most elements
-  const gridSize = Math.ceil(Math.sqrt(Math.max(...Object.values(categoryCounts)) * 10 ));
+  const gridSize = Math.ceil(Math.sqrt(Math.max(...Object.values(categoryCounts)) * 30 ));
 
   // Create the grid
   const grid = Array.from({ length: gridSize }, () => Array(gridSize).fill(null));
@@ -106,39 +118,88 @@ onMounted(async() => {
   });
 
   const categoryBasePositions = {
-    text: { x: 0, y: 0 },
-    symbol: { x: dimensions.value.width, y: 0 },
-    person: { x: dimensions.value.width, y: dimensions.value.height },
-    image: { x: 0, y: dimensions.value.height },
   };
+
+  const categoryQuadrants = {
+    text: {
+      top: 0,
+      left: 0,
+      right: dimensions.value.width/2,
+      bottom: dimensions.value.height/2
+    },
+    symbol: {
+      top: 0,
+      left: dimensions.value.width/2,
+      right: dimensions.value.width,
+      bottom: dimensions.value.height/2
+    },
+    person: {
+      top: dimensions.value.height/2,
+      left: dimensions.value.width/2,
+      right: dimensions.value.width,
+      bottom: dimensions.value.height
+    },
+    image: {
+      top: dimensions.value.height/2,
+      left: 0,
+      right: dimensions.value.width/2,
+      bottom: dimensions.value.height
+    },
+  }
+
+for(const key in categoryQuadrants) {
+  const count = mainCategoryCounts[key].length
+  const amntX = Math.ceil(Math.sqrt(count))
+  const amntY = Math.ceil(count/amntX)
+  const width = dimensions.value.width / (2*amntX)
+  const height = dimensions.value.height / (2*amntY)
+  const top = categoryQuadrants[key].top
+  const left = categoryQuadrants[key].left
+
+  for(let i = 0; i < count ; i++) {
+    const cat = mainCategoryCounts[key][i].title
+
+    const xS = i%amntX
+    const yS = Math.floor(i/amntX)
+    const x = xS * width + width/2
+    const y = yS * height + height/2
+    categoryBasePositions[cat] = {
+      x: left + x,
+      y: top + y
+    }
+  }
+}
+console.log(categoryBasePositions)
 
   //calculate position
   elements.value.forEach((element) => {
-    let category = element.category.parentCategory
-        ? element.category.parentCategory.title
-        : element.category.title;
+    let category = element.category.title;
     let basePosition = categoryBasePositions[category];
 
     // Calculate weighted position
-    let xSum = 0,
-        ySum = 0,
-        count = 0;
-    element.references.forEach((reference) => {
-      const relatedElement = elements.value.find(
-          (e) => e.id === reference.related_item_id.id
-      );
-      if (relatedElement) {
-        let relatedCategory = relatedElement.category.parentCategory
-            ? relatedElement.category.parentCategory.title
-            : relatedElement.category.title;
-        xSum += categoryBasePositions[relatedCategory].x;
-        ySum += categoryBasePositions[relatedCategory].y;
-        count++;
-      }
-    });
+    // let xSum = 0,
+    //     ySum = 0,
+    //     count = 0;
+    // element.references.forEach((reference) => {
+    //   const relatedElement = elements.value.find(
+    //       (e) => e.id === reference.related_item_id.id
+    //   );
+    //   if (relatedElement) {
+    //     let relatedCategory = relatedElement.category.parentCategory
+    //         ? relatedElement.category.parentCategory.title
+    //         : relatedElement.category.title;
+    //     xSum += categoryBasePositions[relatedCategory].x;
+    //     ySum += categoryBasePositions[relatedCategory].y;
+    //     count++;
+    //   }
+    // });
+    // let avgPosition = {
+    //   x: count > 0 ? (basePosition.x + xSum / count) / 2 : basePosition.x,
+    //   y: count > 0 ? (basePosition.y + ySum / count) / 2 : basePosition.y,
+    // };
     let avgPosition = {
-      x: count > 0 ? (basePosition.x + xSum / count) / 2 : basePosition.x,
-      y: count > 0 ? (basePosition.y + ySum / count) / 2 : basePosition.y,
+      x: basePosition.x,
+      y: basePosition.y,
     };
 
     // Map weighted position to grid cell
@@ -162,6 +223,24 @@ onMounted(async() => {
 
   elements.value.sort((a , b) => b.radiusSize - a.radiusSize)
 
+  // Convert your object into an array of objects
+  let categoriesArray = Object.entries(categoryBasePositions).map(([category, position]) => ({
+    category,
+    ...position,
+  }));
+
+// Create a text label for each category
+  svg.selectAll("text")
+      .data(categoriesArray)
+      .enter()
+      .append("text")
+      .attr("x", d => d.x)
+      .attr("y", d => d.y)
+      .text(d => d.category)
+      .attr("font-family", "Lunchtype, sans-serif")  // Set the font as you need
+      .attr("font-size", "20px")          // Set the size as you need
+      .attr("fill", "#331917")
+      .attr("pointer-events", "none")
 
   // Draw lines...
   const lines = svg.selectAll("line")
@@ -172,7 +251,7 @@ onMounted(async() => {
       .attr("x2", d => d.target.x)
       .attr("y2", d => d.target.y)
       .style("stroke", "#331917")
-      .style("stroke-width", 4)
+      .style("stroke-width", 2)
       .style("pointer-events", "none")
       .style("opacity", 0)
 
@@ -187,6 +266,8 @@ onMounted(async() => {
       .style("stroke-width", 2)
       .style("fill", "transparent")
       .style("cursor", "pointer")
+
+
 
 
 
@@ -205,7 +286,6 @@ onMounted(async() => {
         });
         circles
             .style("stroke", d => d.isHovered || d.connectionIsHovered ? d.color : "#331917")
-            .style("stroke-width", d => d.isHovered || d.connectionIsHovered ? 4 : 2)
             .style("fill", d => d.isHovered || d.connectionIsHovered ? "#331917" : "transparent")
         lines
             .style("opacity", d => d.source.isHovered || d.target.isHovered ? 1 : 0)
@@ -222,7 +302,6 @@ onMounted(async() => {
         });
         circles
             .style("stroke", "#331917")
-            .style("stroke-width", 2)
             .style("fill", "transparent")
         lines.style("opacity", 0)
       })

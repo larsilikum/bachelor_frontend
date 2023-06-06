@@ -13,6 +13,10 @@ export const useItemStore = defineStore('item', {
             await this.fetchItems()
             return this.items
         },
+        async getCategories() {
+            await this.fetchCategories()
+            return this.categories
+        },
         getItemById: (state) => {
             return async id => {
                 const item = state.items.find(i => i.id == id, state)
@@ -38,6 +42,12 @@ export const useItemStore = defineStore('item', {
             const item = response.data[0]
             this.items.push(item)
             return item
+        },
+        async fetchCategories() {
+            const response = await directus.items('category').readByQuery({
+                fields: ['*.*.*']
+            })
+            this.categories = response.data
         }
     }
 })
