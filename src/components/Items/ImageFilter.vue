@@ -1,5 +1,5 @@
 <template>
-  <div :id="`canvas-container-${display.id}`" class="canvas-container" ref="container"></div>
+  <div :id="`canvas-container-${display.id}-${index}`" class="canvas-container" ref="container"></div>
 </template>
 
 <script setup>
@@ -8,8 +8,9 @@ import P5 from 'p5'
 
 const provider = 'http://localhost:8055'
 const imgApi = provider + '/assets/'
-const props = defineProps(['display', 'spacing'])
+const props = defineProps(['display', 'spacing', 'index'])
 const container = ref(null)
+const seed = Math.random()*100
 
 onMounted(() => {
   const script = function (p5) {
@@ -38,7 +39,7 @@ onMounted(() => {
       if(!props.display.image) img = p5.createTextImage(props.display.text)
       p5.calcImageSize()
       const canvas = p5.createCanvas(i.width, i.height)
-      canvas.parent(`canvas-container-${props.display.id}`)
+      canvas.parent(`canvas-container-${props.display.id}-${props.index}`)
       p5.frameRate(30)
       p5.rectMode(p5.CENTER)
 
@@ -172,6 +173,7 @@ onMounted(() => {
         width = height * ratio
       }
       let b = p5.createGraphics(width, height)
+      b.noiseSeed(seed)
 
       b.clear()
       b.fill(c)
@@ -206,6 +208,7 @@ onMounted(() => {
         width = dim * height
       }
       const b = p5.createGraphics(width + 20, height + 20)
+      b.fill(c)
       b.textFont(font)
       b.textSize(height)
       const textWidth = b.textWidth(text)

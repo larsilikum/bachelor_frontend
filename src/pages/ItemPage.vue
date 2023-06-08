@@ -15,11 +15,15 @@
       </p>
       <template v-if="item.references.length">
         <p class="big-type">Referenced Items</p>
-        <item-preview v-for="reference in item.references" :item="reference.related_item_id"/>
+        <item-preview v-for="reference in item.references" :item="reference.related_item_id" index="1"/>
+      </template>
+      <template v-if="referring.length">
+        <p class="big-type">Items Referring</p>
+        <item-preview v-for="reference in referring" :item="reference" index="2"/>
       </template>
     </div>
     <div id="image-filter">
-      <image-filter class="display" v-if="item" :display="item.display" spacing="7"/>
+      <image-filter class="display" v-if="item" :display="item.display" spacing="7" index="0"/>
     </div>
   </article>
 </template>
@@ -34,8 +38,10 @@ import ItemPreview from "../components/Items/ItemPreview.vue";
 
 const itemStore = useItemStore()
 const getItemById = itemStore.getItemById
+const getReferencingItems = itemStore.getReferencingItems
 
 const item = ref(undefined)
+const referring = ref([])
 const route = useRoute()
 
 const dateOptions = {
@@ -45,7 +51,9 @@ const dateOptions = {
 }
 
 onMounted(async() => {
-  item.value = await getItemById(route.params.id)
+  const id = route.params.id
+  item.value = await getItemById(id)
+  referring.value = await getReferencingItems(id)
 })
 </script>
 

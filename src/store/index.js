@@ -23,6 +23,11 @@ export const useItemStore = defineStore('item', {
                 if(item) return item
                 return await state.fetchItemById(id)
             }
+        },
+        getReferencingItems: (state) => {
+            return async id => {
+                return await state.fetchReferencingItems(id)
+            }
         }
     },
     actions: {
@@ -48,6 +53,20 @@ export const useItemStore = defineStore('item', {
                 fields: ['*.*.*']
             })
             this.categories = response.data
+        },
+        async fetchReferencingItems(id) {
+            const response = await directus.items('item').readByQuery({
+                fields: ['*.*.*.*.*'],
+                filter: {
+                    references: {
+                        related_item_id: {
+                            id
+                        }
+                    }
+                }
+            })
+            console.log(response.data)
+            return response.data
         }
     }
 })

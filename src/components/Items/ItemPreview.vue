@@ -1,7 +1,7 @@
 <template>
   <router-link :to="`/item/${item.id}`">
     <div class="preview-image">
-      <image-filter :display="item.display" spacing="25"/>
+      <image-filter :display="item.display" spacing="25" :index="index"/>
     </div>
     <p v-show="show" class="description" v-html="item.description"></p>
     <button @click.prevent="showDescription">{{show ? 'hide' : 'show'}} description</button>
@@ -12,7 +12,7 @@
 import ImageFilter from "./ImageFilter.vue";
 import {ref} from "vue";
 
-defineProps(['item'])
+defineProps(['item', 'index'])
 const show = ref(false)
 
 const showDescription = () => {
