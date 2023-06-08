@@ -31,9 +31,8 @@ const dimensions = ref({
 
 
 onMounted(async() => {
-  elements.value = await store.getItems
+  elements.value = JSON.parse(JSON.stringify(await store.getItems))
   const categories = await store.getCategories
-  console.log(categories)
 
   dimensions.value.width = map.value.clientWidth
   dimensions.value.height = map.value.clientHeight

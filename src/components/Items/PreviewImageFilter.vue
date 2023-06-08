@@ -8,7 +8,7 @@ import P5 from 'p5'
 
 const provider = 'http://localhost:8055'
 const imgApi = provider + '/assets/'
-const props = defineProps(['display', 'spacing'])
+const props = defineProps(['display'])
 const container = ref(null)
 
 onMounted(() => {
@@ -21,7 +21,7 @@ onMounted(() => {
     let duration = 0
     let pixelVals = []
     let pixelColors = []
-    let spacing = props.spacing
+    let spacing = 20
     let buffer = []
     let font
     let c = p5.color( '#331917' )
@@ -60,7 +60,7 @@ onMounted(() => {
         p5.image(buffer[duration], 0, 0, p5.width, p5.height)
       }
       if(buffer.length < 7 && p5.frameCount > 1 && p5.frameCount < 8) {
-          buffer.push(p5.generateBuffer(buffer.length))
+        buffer.push(p5.generateBuffer(buffer.length))
       }
       if(p5.frameCount > 8) {
         if (!isHovering && duration === 0) p5.noLoop()
@@ -221,7 +221,7 @@ onMounted(() => {
 <style scoped>
 .canvas-container {
   width: 100%;
-  height: 100%;
+  aspect-ratio: 4/3;
   display: flex;
   justify-content: center;
   align-items: center;

@@ -13,8 +13,14 @@
       </p>
       <p class="description" v-html="item.description">
       </p>
+      <template v-if="item.references.length">
+        <p class="big-type">Referenced Items</p>
+        <item-preview v-for="reference in item.references" :item="reference.related_item_id"/>
+      </template>
     </div>
-    <image-filter class="display" v-if="item" :display="item.display"/>
+    <div id="image-filter">
+      <image-filter class="display" v-if="item" :display="item.display" spacing="7"/>
+    </div>
   </article>
 </template>
 
@@ -24,6 +30,7 @@ import {useItemStore} from "../store/index.js";
 import {useRoute} from "vue-router";
 import DisplayComponent from "../components/Items/DisplayComponent.vue";
 import ImageFilter from "../components/Items/ImageFilter.vue";
+import ItemPreview from "../components/Items/ItemPreview.vue";
 
 const itemStore = useItemStore()
 const getItemById = itemStore.getItemById
@@ -53,6 +60,11 @@ article {
   grid-column: 1 / span 3;
 }
 .display {
+
+}
+#image-filter {
+  width: 100%;
+  height: calc(100vh - 120px);
   grid-column: 5 / span 12;
   position: sticky;
   top: 60px;
@@ -68,8 +80,9 @@ h1 {
 p {
   margin-bottom: 40px;
 }
-.trigger {
+.trigger, .trigger span {
   text-transform: uppercase;
+  color: #942317;
 }
 .meta {
   text-transform: uppercase;
@@ -78,6 +91,7 @@ p {
 }
 .description {
   text-align: justify;
+  margin-bottom: 80px;
 }
 :deep(strong) {
   font-weight: normal;
