@@ -266,7 +266,72 @@ console.log(categoryBasePositions)
       .style("fill", "transparent")
       .style("cursor", "pointer")
 
+for(const category in categories) {
 
+  let boundaryNodes = [];
+  let outerShapePath = d3.path();
+  const title = categories[category].title
+
+// Calculate boundary nodes
+
+  for (let i = 0; i < grid.length; i++) {
+    let col = grid[i];
+    col = col.filter(el => el && el.category.title === title)
+    let minNode = col[d3.minIndex(col, d => d ? d.y : Infinity)];
+    let maxNode = col[d3.maxIndex(col, d => d ? d.y : -1)];
+    if (minNode && maxNode) boundaryNodes.push(minNode, maxNode);
+  }
+
+  for (let i = 0; i < grid[0].length; i++) {
+    let row = grid.map(col => col[i]);
+    row = row.filter(el => el && el.category.title === title)
+    let minNode = row[d3.minIndex(row, d => d ? d.x : Infinity)];
+    let maxNode = row[d3.maxIndex(row, d => d ? d.x : -1)];
+    //console.log(minNode, maxNode)
+    if (minNode && maxNode) boundaryNodes.push(minNode, maxNode);
+  }
+  boundaryNodes = (function (arr) {
+    let m = {}, newarr = []
+    for (let i = 0; i < arr.length; i++) {
+      let v = arr[i];
+      if (!m[v.id]) {
+        newarr.push(v);
+        m[v.id] = true;
+      }
+    }
+    return newarr;
+  })(boundaryNodes);
+
+  const avgX = boundaryNodes.reduce(function(p,c,i){return p+(c.x-p)/(i+1)},0)
+  const avgY = boundaryNodes.reduce(function(p,c,i){return p+(c.y-p)/(i+1)},0)
+
+// Sort nodes clockwise
+  boundaryNodes.sort((a, b) => Math.atan2(a.y - avgY, a.x - avgX) - Math.atan2(b.y - avgY, b.x - avgX));
+  if(boundaryNodes.length) outerShapePath.moveTo(boundaryNodes[0].x, boundaryNodes[0].y)
+// Draw shape
+  for (let i = 0; i < boundaryNodes.length; i++) {
+    const margin = 10
+    let node = boundaryNodes[i];
+    let prevNode = boundaryNodes[i - 1] || boundaryNodes[boundaryNodes.length - 1];
+    let nextNode = boundaryNodes[(i + 1) % boundaryNodes.length];
+    let isCorner = (node.x !== prevNode.x && node.x !== nextNode.x) || (node.y !== prevNode.y && node.y !== nextNode.y);
+    if (isCorner) {
+      // Draw two points for corner nodes
+      outerShapePath.bezierCurveTo(nextNode.x - 10, nextNode.y, node.x, node.y, nextNode.x, nextNode.y);
+      // outerShapePath.lineTo(node.x, node.y - node.radius - margin);
+    } else {
+      // Draw one point for other nodes
+      outerShapePath.bezierCurveTo(nextNode.x - 10, nextNode.y, node.x, node.y, nextNode.x, nextNode.y);
+    }
+  }
+
+// Add shape to your SVG
+  svg.append("path")
+      .attr("d", outerShapePath.toString())
+      .attr("fill", "none")
+      .attr("stroke", "black")
+      .attr("stroke-width", 2)
+}
 
 
 
