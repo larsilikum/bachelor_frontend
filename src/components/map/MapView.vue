@@ -260,6 +260,7 @@ onMounted(async () => {
       .text(d => d.category)
       .attr("font-family", "Lunchtype, sans-serif")  // Set the font as you need
       .attr("font-size", d => Object.keys(categoryQuadrants).includes(d.category) ? "70px" : "20px")
+      .attr("text-anchor", "middle")
       .attr("fill", d => (getColorsOfCategory(d.category)).highlight)
       .attr("pointer-events", "none")
 
@@ -297,6 +298,7 @@ onMounted(async () => {
     const col = (getColorsOfCategory(mainCat)).highlight
 
 // Calculate boundary nodes
+    const margin = 20
 
     for (let i = 0; i < grid.length; i++) {
       let col = grid[i];
@@ -307,12 +309,13 @@ onMounted(async () => {
       if( minNode ) {
         minN = JSON.parse(JSON.stringify(minNode))
         maxN = JSON.parse(JSON.stringify(maxNode))
-        minN.outlinePos = {x: 1,y:  0}
-        maxN.outlinePos = {x: -1,y:  0}
+        const minRad = margin + minN.radiusSize
+        const maxRad = margin + maxN.radiusSize
+        minN.outlinePos = {x: minN.x,y:  minN.y - minRad}
+        maxN.outlinePos = {x: maxN.x,y:  maxN.y + maxRad}
         boundaryNodes.push(minN, maxN)
       }
     }
-
     for (let i = 0; i < grid[0].length; i++) {
       let row = grid.map(col => col[i]);
       row = row.filter(el => el && el.category.title === title)
@@ -322,8 +325,10 @@ onMounted(async () => {
       if( minNode ) {
         minN = JSON.parse(JSON.stringify(minNode))
         maxN = JSON.parse(JSON.stringify(maxNode))
-        minN.outlinePos = {x: 0,y:  -1}
-        maxN.outlinePos = {x: 0,y:  1}
+        const minRad = margin + minN.radiusSize
+        const maxRad = margin + maxN.radiusSize
+        minN.outlinePos = {x: minN.x - minRad,y:  minN.y}
+        maxN.outlinePos = {x: maxN.x + maxRad,y:  maxN.y}
         boundaryNodes.push(minN, maxN)
       }
     }
@@ -348,49 +353,31 @@ onMounted(async () => {
     }, 0)
 
 // Sort nodes clockwise
-    boundaryNodes.sort((a, b) => Math.atan2(a.y - a.outlinePos.x - avgY, a.x + a.outlinePos.y - avgX) - Math.atan2(b.y - b.outlinePos.x - avgY, b.x + b.outlinePos.y - avgX));
+    boundaryNodes.sort((a, b) => Math.atan2( a.outlinePos.y - avgY, a.outlinePos.x - avgX) - Math.atan2(b.outlinePos.y - avgY, b.outlinePos.x - avgX));
     console.log('hello')
 // Draw shape
     for (let i = 0; i < (boundaryNodes.length !== 0 ? boundaryNodes.length + 1 : 0); i++) {
-      const margin = 10
       const index = i % (boundaryNodes.length)
       let node = boundaryNodes[index];
       let prevNode = boundaryNodes[index - 1] || boundaryNodes[boundaryNodes.length - 1];
+      let deltaX = node.outlinePos.x - prevNode.outlinePos.x
+      let deltaY = node.outlinePos.y - prevNode.outlinePos.y
+      let handleX, handleY
 
-
-
-      const lengthX = dimensions.value.width / gridSize
-      const lengthY = dimensions.value.width / gridSize
-
-      const prevXPos = (prevNode.outlinePos.x * (prevNode.radiusSize + margin))
-      const prevYPos = (prevNode.outlinePos.y * (prevNode.radiusSize + margin))
-      const xPos = (node.outlinePos.x * (node.radiusSize + margin))
-      const yPos = (node.outlinePos.y * (node.radiusSize + margin))
-      const lengthXPos = node.outlinePos.x * lengthX / 2
-      const lengthYPos = node.outlinePos.y * lengthY / 2
-
-
-      if(i === 0) {
-        outerShapePath.moveTo(node.x + yPos, node.y - xPos)
-      } else {
-        outerShapePath.bezierCurveTo(
-            prevNode.x + prevXPos + prevYPos,
-            prevNode.y - prevXPos + prevYPos,
-            node.x - lengthXPos + yPos,
-            node.y - xPos - lengthYPos,
-            node.x + yPos, node.y - xPos)
+      if((deltaX > 0 && deltaY > 0) || (deltaX < 0 && deltaY < 0)) {
+        handleX = node.outlinePos.x
+        handleY = prevNode.outlinePos.y
+      }  else {
+        handleX = prevNode.outlinePos.x
+        handleY = node.outlinePos.y
       }
 
-    }
-    if(boundaryNodes.length === 1) {
-      let node = boundaryNodes[0]
-      const margin = 10
-      const rad = margin + node.radiusSize
-      outerShapePath.moveTo(node.x + rad, node.y)
-      outerShapePath.bezierCurveTo(node.x + rad, node.y + rad/2, node.x + rad /2, node.y + rad, node.x, node.y + rad )
-      outerShapePath.bezierCurveTo(node.x - rad / 2, node.y + rad, node.x - rad , node.y + rad, node.x - rad, node.y )
-      outerShapePath.bezierCurveTo(node.x - rad, node.y - rad/2, node.x - rad /2, node.y - rad, node.x, node.y - rad )
-      outerShapePath.bezierCurveTo(node.x + rad / 2, node.y - rad, node.x + rad, node.y - rad / 2, node.x + rad, node.y)
+      if(i === 0) {
+        outerShapePath.moveTo(node.outlinePos.x, node.outlinePos.y)
+      } else {
+        outerShapePath.quadraticCurveTo(handleX, handleY, node.outlinePos.x, node.outlinePos.y)
+      }
+
     }
     outerShapePath.closePath()
 // Add shape to your SVG
@@ -398,7 +385,7 @@ onMounted(async () => {
         .attr("d", outerShapePath.toString())
         .attr("fill", "none")
         .attr("stroke", col)
-        .attr("stroke-dasharray", 5)
+        .attr("stroke-dasharray", 7)
         .attr("stroke-width", 2)
   }
 
@@ -563,6 +550,9 @@ function createFakeData(numElements = 150) {
   background-color: #CBCACA;
   flex: 5;
   border: 2px solid var(--pri);
+}
+text {
+  text-transform: uppercase;
 }
 
 </style>
