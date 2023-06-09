@@ -36,7 +36,7 @@ colorStore.setBgColor('defaultCol')
 
 onMounted(async () => {
   //elements.value = JSON.parse(JSON.stringify(await store.getItems))
-  elements.value = createFakeData(250)
+  elements.value = createFakeData(150)
   //const categories = await store.getCategories
   const categories = [
     {title: 'image', parentCategory: null},
@@ -132,7 +132,7 @@ onMounted(async () => {
     element.referenceCount = referenceCounts.get(element.id) || 0;
 
     // Add the radius size
-    element.radiusSize = element.referenceCount * 6 + minRadius
+    element.radiusSize = element.referenceCount * 12 + minRadius
 
     element.references.forEach(reference => {
       let relatedElement = elements.value.find(e => e.id === reference.related_item_id.id);
@@ -303,7 +303,14 @@ onMounted(async () => {
       col = col.filter(el => el && el.category.title === title)
       let minNode = col[d3.minIndex(col, d => d ? d.y : Infinity)];
       let maxNode = col[d3.maxIndex(col, d => d ? d.y : -1)];
-      if (minNode && maxNode) boundaryNodes.push(minNode, maxNode);
+      let minN, maxN
+      if( minNode ) {
+        minN = JSON.parse(JSON.stringify(minNode))
+        maxN = JSON.parse(JSON.stringify(maxNode))
+        minN.outlinePos = {x: 1,y:  0}
+        maxN.outlinePos = {x: -1,y:  0}
+        boundaryNodes.push(minN, maxN)
+      }
     }
 
     for (let i = 0; i < grid[0].length; i++) {
@@ -311,10 +318,16 @@ onMounted(async () => {
       row = row.filter(el => el && el.category.title === title)
       let minNode = row[d3.minIndex(row, d => d ? d.x : Infinity)];
       let maxNode = row[d3.maxIndex(row, d => d ? d.x : -1)];
-      //console.log(minNode, maxNode)
-      if (minNode && maxNode) boundaryNodes.push(minNode, maxNode);
+      let minN, maxN
+      if( minNode ) {
+        minN = JSON.parse(JSON.stringify(minNode))
+        maxN = JSON.parse(JSON.stringify(maxNode))
+        minN.outlinePos = {x: 0,y:  -1}
+        maxN.outlinePos = {x: 0,y:  1}
+        boundaryNodes.push(minN, maxN)
+      }
     }
-    boundaryNodes = (function (arr) {
+    const avgNodes = (function (arr) {
       let m = {}, newarr = []
       for (let i = 0; i < arr.length; i++) {
         let v = arr[i];
@@ -327,102 +340,45 @@ onMounted(async () => {
     })(boundaryNodes);
 
 
-    const avgX = boundaryNodes.reduce(function (p, c, i) {
+    const avgX = avgNodes.reduce(function (p, c, i) {
       return p + (c.x - p) / (i + 1)
     }, 0)
-    const avgY = boundaryNodes.reduce(function (p, c, i) {
+    const avgY = avgNodes.reduce(function (p, c, i) {
       return p + (c.y - p) / (i + 1)
     }, 0)
 
 // Sort nodes clockwise
-    boundaryNodes.sort((a, b) => Math.atan2(a.y - avgY, a.x - avgX) - Math.atan2(b.y - avgY, b.x - avgX));
+    boundaryNodes.sort((a, b) => Math.atan2(a.y - a.outlinePos.x - avgY, a.x + a.outlinePos.y - avgX) - Math.atan2(b.y - b.outlinePos.x - avgY, b.x + b.outlinePos.y - avgX));
     console.log('hello')
 // Draw shape
     for (let i = 0; i < (boundaryNodes.length !== 0 ? boundaryNodes.length + 1 : 0); i++) {
       const margin = 10
       const index = i % (boundaryNodes.length)
       let node = boundaryNodes[index];
-      node.forgetYDiff = false
-      node.forgetXDiff = false
       let prevNode = boundaryNodes[index - 1] || boundaryNodes[boundaryNodes.length - 1];
-      let nextNode = boundaryNodes[(index + 1) % boundaryNodes.length];
-      let isCorner = !(node.x === prevNode.x && node.x === nextNode.x) && !(node.y === prevNode.y && node.y === nextNode.y);
-      const deltaX = node.x - prevNode.x
-      const deltaY = node.y - prevNode.y
-      let dirX = deltaX !== 0 ? deltaX / Math.abs(deltaX) : 0
-      let dirY = deltaY !== 0 ? deltaY / Math.abs(deltaY) : 0
 
-      const deltaXNext = nextNode.x - node.x
-      const deltaYNext = nextNode.y - node.y
-      let dirXNext = deltaXNext !== 0 ? deltaXNext / Math.abs(deltaXNext) : 0
-      let dirYNext = deltaYNext !== 0 ? deltaYNext / Math.abs(deltaYNext) : 0
 
-      if(isCorner && (dirX + dirXNext === 0 || dirY + dirYNext === 0)) {
-        node.isSpecialCorner = true
-        if(dirX + dirY > 1 || dirXNext + dirYNext > 1) {
-          node.forgetYDiff = true
-          dirX = 0
-          dirYNext = 0
-        } else {
-          node.forgetXDiff = true
-          dirY = 0
-          dirXNext = 0
-        }
-      } else {
-        if(prevNode.forgetYDiff) dirY = 0
-        if(prevNode.forgetXDiff) dirX = 0
-      }
 
       const lengthX = dimensions.value.width / gridSize
       const lengthY = dimensions.value.width / gridSize
 
-      const prevXPos = (dirX * (prevNode.radiusSize + margin))
-      const prevYPos = (dirY * (prevNode.radiusSize + margin))
-      const xPos = (dirX * (node.radiusSize + margin))
-      const yPos = (dirY * (node.radiusSize + margin))
-      const lengthXPos = dirX * lengthX / 2
-      const lengthYPos = dirY * lengthY / 2
+      const prevXPos = (prevNode.outlinePos.x * (prevNode.radiusSize + margin))
+      const prevYPos = (prevNode.outlinePos.y * (prevNode.radiusSize + margin))
+      const xPos = (node.outlinePos.x * (node.radiusSize + margin))
+      const yPos = (node.outlinePos.y * (node.radiusSize + margin))
+      const lengthXPos = node.outlinePos.x * lengthX / 2
+      const lengthYPos = node.outlinePos.y * lengthY / 2
 
-      const xPosNext = (dirXNext * (node.radiusSize + margin))
-      const yPosNext = (dirYNext * (node.radiusSize + margin))
 
       if(i === 0) {
-        outerShapePath.moveTo(node.x + yPosNext, node.y - xPosNext)
-      } else if(node.isSpecialCorner) {
-        if(prevNode.forgetXDiff) {
-          const extraLength = ((node.y - prevNode.y) / Math.abs(node.y - prevNode.y)) * (prevNode.radiusSize + margin)
-          outerShapePath.bezierCurveTo(
-              prevNode.x + extraLength,
-              prevNode.y - prevXPos,
-              node.x - lengthXPos + yPos,
-              node.y - xPos - lengthYPos,
-              node.x + yPos, node.y - xPos)
-        } else {
-          const extraLength = ((node.x - prevNode.x) / Math.abs(node.x - prevNode.x)) * (prevNode.radiusSize + margin)
-          outerShapePath.bezierCurveTo(
-              prevNode.x + prevYPos,
-              prevNode.y - extraLength,
-              node.x - lengthXPos + yPos,
-              node.y - xPos - lengthYPos,
-              node.x + yPos, node.y - xPos)
-        }
-
+        outerShapePath.moveTo(node.x + yPos, node.y - xPos)
       } else {
         outerShapePath.bezierCurveTo(
-            prevNode.x + lengthXPos + prevYPos,
-            prevNode.y - prevXPos + lengthYPos,
+            prevNode.x + prevXPos + prevYPos,
+            prevNode.y - prevXPos + prevYPos,
             node.x - lengthXPos + yPos,
             node.y - xPos - lengthYPos,
             node.x + yPos, node.y - xPos)
-      }
-
-      if (isCorner && (dirX === 0 || dirY === 0) && (dirXNext === 0 || dirYNext === 0) && i !== 0) {
-        outerShapePath.bezierCurveTo(
-            node.x + xPos / 2 + yPos,
-            node.y - xPos + yPos / 2,
-            node.x - xPosNext / 2 + yPosNext,
-            node.y - xPosNext - yPosNext / 2,
-            node.x + yPosNext, node.y - xPosNext)
       }
 
     }
