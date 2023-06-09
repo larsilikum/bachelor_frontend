@@ -35,33 +35,33 @@ const dimensions = ref({
 colorStore.setBgColor('defaultCol')
 
 onMounted(async () => {
-  //elements.value = JSON.parse(JSON.stringify(await store.getItems))
-  elements.value = createFakeData(150)
-  //const categories = await store.getCategories
-  const categories = [
-    {title: 'image', parentCategory: null},
-    {title: 'text', parentCategory: null},
-    {title: 'symbol', parentCategory: null},
-    {title: 'person', parentCategory: null},
-    {title: 'test 1', parentCategory: {title: 'person', parentCategory: null}},
-    {title: 'test 2', parentCategory: {title: 'person', parentCategory: null}},
-    {title: 'test 3', parentCategory: {title: 'person', parentCategory: null}},
-    {title: 'test 4', parentCategory: {title: 'person', parentCategory: null}},
-    {title: 'test 5', parentCategory: {title: 'image', parentCategory: null}},
-    {title: 'test 6', parentCategory: {title: 'image', parentCategory: null}},
-    {title: 'test 7', parentCategory: {title: 'image', parentCategory: null}},
-    {title: 'test 8', parentCategory: {title: 'image', parentCategory: null}},
-    {title: 'test 9', parentCategory: {title: 'image', parentCategory: null}},
-    {title: 'test 10', parentCategory: {title: 'text', parentCategory: null}},
-    {title: 'test 11', parentCategory: {title: 'text', parentCategory: null}},
-    {title: 'test 12', parentCategory: {title: 'text', parentCategory: null}},
-    {title: 'test 13', parentCategory: {title: 'text', parentCategory: null}},
-    {title: 'test 14', parentCategory: {title: 'text', parentCategory: null}},
-    {title: 'test 15', parentCategory: {title: 'symbol', parentCategory: null}},
-    {title: 'test 16', parentCategory: {title: 'symbol', parentCategory: null}},
-    {title: 'test 17', parentCategory: {title: 'symbol', parentCategory: null}},
-    {title: 'test 18', parentCategory: {title: 'symbol', parentCategory: null}}
-  ]
+  elements.value = JSON.parse(JSON.stringify(await store.getItems))
+  // elements.value = createFakeData(50)
+  const categories = await store.getCategories
+  // const categories = [
+  //   {title: 'image', parentCategory: null},
+  //   {title: 'text', parentCategory: null},
+  //   {title: 'symbol', parentCategory: null},
+  //   {title: 'person', parentCategory: null},
+  //   {title: 'test 1', parentCategory: {title: 'person', parentCategory: null}},
+  //   {title: 'test 2', parentCategory: {title: 'person', parentCategory: null}},
+  //   {title: 'test 3', parentCategory: {title: 'person', parentCategory: null}},
+  //   {title: 'test 4', parentCategory: {title: 'person', parentCategory: null}},
+  //   {title: 'test 5', parentCategory: {title: 'image', parentCategory: null}},
+  //   {title: 'test 6', parentCategory: {title: 'image', parentCategory: null}},
+  //   {title: 'test 7', parentCategory: {title: 'image', parentCategory: null}},
+  //   {title: 'test 8', parentCategory: {title: 'image', parentCategory: null}},
+  //   {title: 'test 9', parentCategory: {title: 'image', parentCategory: null}},
+  //   {title: 'test 10', parentCategory: {title: 'text', parentCategory: null}},
+  //   {title: 'test 11', parentCategory: {title: 'text', parentCategory: null}},
+  //   {title: 'test 12', parentCategory: {title: 'text', parentCategory: null}},
+  //   {title: 'test 13', parentCategory: {title: 'text', parentCategory: null}},
+  //   {title: 'test 14', parentCategory: {title: 'text', parentCategory: null}},
+  //   {title: 'test 15', parentCategory: {title: 'symbol', parentCategory: null}},
+  //   {title: 'test 16', parentCategory: {title: 'symbol', parentCategory: null}},
+  //   {title: 'test 17', parentCategory: {title: 'symbol', parentCategory: null}},
+  //   {title: 'test 18', parentCategory: {title: 'symbol', parentCategory: null}}
+  // ]
 
   dimensions.value.width = map.value.clientWidth
   dimensions.value.height = map.value.clientHeight
@@ -132,7 +132,7 @@ onMounted(async () => {
     element.referenceCount = referenceCounts.get(element.id) || 0;
 
     // Add the radius size
-    element.radiusSize = element.referenceCount * 12 + minRadius
+    element.radiusSize = element.referenceCount * 6 + minRadius
 
     element.references.forEach(reference => {
       let relatedElement = elements.value.find(e => e.id === reference.related_item_id.id);
@@ -200,30 +200,30 @@ onMounted(async () => {
     let basePosition = categoryBasePositions[category];
 
     // Calculate weighted position
-    // let xSum = 0,
-    //     ySum = 0,
-    //     count = 0;
-    // element.references.forEach((reference) => {
-    //   const relatedElement = elements.value.find(
-    //       (e) => e.id === reference.related_item_id.id
-    //   );
-    //   if (relatedElement) {
-    //     let relatedCategory = relatedElement.category.parentCategory
-    //         ? relatedElement.category.parentCategory.title
-    //         : relatedElement.category.title;
-    //     xSum += categoryBasePositions[relatedCategory].x;
-    //     ySum += categoryBasePositions[relatedCategory].y;
-    //     count++;
-    //   }
-    // });
-    // let avgPosition = {
-    //   x: count > 0 ? (basePosition.x + xSum / count) / 2 : basePosition.x,
-    //   y: count > 0 ? (basePosition.y + ySum / count) / 2 : basePosition.y,
-    // };
+    let xSum = 0,
+        ySum = 0,
+        count = 0;
+    element.references.forEach((reference) => {
+      const relatedElement = elements.value.find(
+          (e) => e.id === reference.related_item_id.id
+      );
+      if (relatedElement) {
+        let relatedCategory = relatedElement.category.parentCategory
+            ? relatedElement.category.parentCategory.title
+            : relatedElement.category.title;
+        xSum += categoryBasePositions[relatedCategory].x;
+        ySum += categoryBasePositions[relatedCategory].y;
+        count++;
+      }
+    });
     let avgPosition = {
-      x: basePosition.x,
-      y: basePosition.y,
+      x: count > 0 ? basePosition.x + ((xSum / count) - basePosition.x) / 6 : basePosition.x,
+      y: count > 0 ? basePosition.y + ((ySum / count) - basePosition.y) / 6 : basePosition.y,
     };
+    // let avgPosition = {
+    //   x: basePosition.x,
+    //   y: basePosition.y,
+    // };
 
     // Map weighted position to grid cell
     let cellPosition = {
@@ -250,51 +250,13 @@ onMounted(async () => {
     ...position,
   }));
 
-// Create a text label for each category
-  svg.selectAll("text")
-      .data(categoriesArray)
-      .enter()
-      .append("text")
-      .attr("x", d => d.x)
-      .attr("y", d => d.y)
-      .text(d => d.category)
-      .attr("font-family", "Lunchtype, sans-serif")  // Set the font as you need
-      .attr("font-size", d => Object.keys(categoryQuadrants).includes(d.category) ? "70px" : "20px")
-      .attr("text-anchor", "middle")
-      .attr("fill", d => (getColorsOfCategory(d.category)).highlight)
-      .attr("pointer-events", "none")
-
-  // Draw lines...
-  const lines = svg.selectAll("line")
-      .data(linesData)
-      .enter().append("line")
-      .attr("x1", d => d.source.x)
-      .attr("y1", d => d.source.y)
-      .attr("x2", d => d.target.x)
-      .attr("y2", d => d.target.y)
-      .style("stroke", "#331917")
-      .style("stroke-width", 2)
-      .style("pointer-events", "none")
-      .style("opacity", 0)
-
-  // Draw circles...
-  const circles = svg.selectAll("circle")
-      .data(elements.value)  // bind elements to circles
-      .enter().append("circle")  // create new circle for each element
-      .attr("r", d => d.radiusSize)  // radius depends on number of references
-      .attr("cx", d => d.x)  // random x position
-      .attr("cy", d => d.y) // random y position
-      .style("stroke", "#331917")
-      .style("stroke-width", 2)
-      .style("fill", "transparent")
-      .style("cursor", "pointer")
 
   for (const category in categories) {
-
+    const c = categories[category]
     let boundaryNodes = [];
     let outerShapePath = d3.path();
-    const title = categories[category].title
-    const mainCat = categories[category].parentCategory ? categories[category].parentCategory.title : categories[category].title
+    const title = c.title
+    const mainCat = c.parentCategory ? c.parentCategory.title : c.title
     const col = (getColorsOfCategory(mainCat)).highlight
 
 // Calculate boundary nodes
@@ -354,7 +316,7 @@ onMounted(async () => {
 
 // Sort nodes clockwise
     boundaryNodes.sort((a, b) => Math.atan2( a.outlinePos.y - avgY, a.outlinePos.x - avgX) - Math.atan2(b.outlinePos.y - avgY, b.outlinePos.x - avgX));
-    console.log('hello')
+
 // Draw shape
     for (let i = 0; i < (boundaryNodes.length !== 0 ? boundaryNodes.length + 1 : 0); i++) {
       const index = i % (boundaryNodes.length)
@@ -380,14 +342,65 @@ onMounted(async () => {
 
     }
     outerShapePath.closePath()
+    svg.append("text")
+        .text(title)
+        .attr("x", avgX || categoryBasePositions[title].x)
+        .attr("y", avgY || categoryBasePositions[title].y)
+        .attr("font-family", "Lunchtype, sans-serif")  // Set the font as you need
+        .attr("font-size", Object.keys(categoryQuadrants).includes(title) ? "70px" : "20px")
+        .attr("text-anchor", "middle")
+        .attr("fill", col)
+        .attr("pointer-events", "none")
+
 // Add shape to your SVG
-    svg.append("path")
+    svg.append('path')
         .attr("d", outerShapePath.toString())
         .attr("fill", "none")
         .attr("stroke", col)
-        .attr("stroke-dasharray", 7)
-        .attr("stroke-width", 2)
+        .attr("stroke-width", 1)
+
+
+
   }
+
+  // Create a text label for each category
+  svg.selectAll("text")
+      .data(categoriesArray)
+      .enter()
+      .append("text")
+      .attr("x", d => d.x)
+      .attr("y", d => d.y)
+      .text(d => d.category)
+      .attr("font-family", "Lunchtype, sans-serif")  // Set the font as you need
+      .attr("font-size", d => Object.keys(categoryQuadrants).includes(d.category) ? "70px" : "20px")
+      .attr("text-anchor", "middle")
+      .attr("fill", d => (getColorsOfCategory(d.category)).highlight)
+      .attr("pointer-events", "none")
+
+  // Draw lines...
+  const lines = svg.selectAll("line")
+      .data(linesData)
+      .enter().append("line")
+      .attr("x1", d => d.source.x)
+      .attr("y1", d => d.source.y)
+      .attr("x2", d => d.target.x)
+      .attr("y2", d => d.target.y)
+      .style("stroke", "#331917")
+      .style("stroke-width", 2)
+      .style("pointer-events", "none")
+      .style("opacity", 0)
+
+  // Draw circles...
+  const circles = svg.selectAll("circle")
+      .data(elements.value)  // bind elements to circles
+      .enter().append("circle")  // create new circle for each element
+      .attr("r", d => d.radiusSize)  // radius depends on number of references
+      .attr("cx", d => d.x)  // random x position
+      .attr("cy", d => d.y) // random y position
+      .style("stroke", "#331917")
+      .style("stroke-width", 2)
+      .style("fill", "transparent")
+      .style("cursor", "pointer")
 
 
   // Handle interactions...
