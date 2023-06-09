@@ -10,7 +10,7 @@
 
 <style scoped>
 nav {
-  position: fixed;
+  position: sticky;
   top: 0;
   left: 0;
   width: 100%;
@@ -18,6 +18,7 @@ nav {
   display: flex;
   justify-content: space-between;
   padding: 10px;
+  z-index: 10;
 }
 
 a {

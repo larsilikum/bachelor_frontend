@@ -13,17 +13,17 @@
       </p>
       <p class="description" v-html="item.description">
       </p>
-      <template v-if="item.references.length">
+      <div class="references" v-if="item.references.length">
         <p class="big-type">Referenced Items</p>
         <item-preview v-for="reference in item.references" :item="reference.related_item_id" index="1"/>
-      </template>
-      <template v-if="referring.length">
+      </div>
+      <div class="references" v-if="referring.length">
         <p class="big-type">Items Referring</p>
         <item-preview v-for="reference in referring" :item="reference" index="2"/>
-      </template>
+      </div>
     </div>
     <div id="image-filter">
-      <image-filter class="display" v-if="item" :display="item.display" spacing="7" index="0"/>
+      <image-filter class="display" v-if="item" :display="item.display" spacing="8" index="0"/>
     </div>
   </article>
 </template>
@@ -32,13 +32,15 @@
 import {onMounted, ref} from "vue";
 import {useItemStore} from "../store/index.js";
 import {useRoute} from "vue-router";
-import DisplayComponent from "../components/Items/DisplayComponent.vue";
 import ImageFilter from "../components/Items/ImageFilter.vue";
 import ItemPreview from "../components/Items/ItemPreview.vue";
+import {useColorStore} from "../store/bg.js";
 
 const itemStore = useItemStore()
 const getItemById = itemStore.getItemById
 const getReferencingItems = itemStore.getReferencingItems
+
+const colorStore = useColorStore()
 
 const item = ref(undefined)
 const referring = ref([])
@@ -53,6 +55,8 @@ const dateOptions = {
 onMounted(async() => {
   const id = route.params.id
   item.value = await getItemById(id)
+  const cat = item.value.category.parentCategory ? item.value.category.parentCategory.title : item.value.category.title
+  colorStore.setBgColor(cat)
   referring.value = await getReferencingItems(id)
 })
 </script>
@@ -62,7 +66,7 @@ onMounted(async() => {
 article {
   display: grid;
   grid-template-columns: repeat(16, minmax(0, 1fr));
-  padding: 10px 10px 0 10px;
+  padding: 10px;
 }
 .info {
   grid-column: 1 / span 3;
@@ -72,11 +76,15 @@ article {
 }
 #image-filter {
   width: 100%;
-  height: calc(100vh - 120px);
+  height: calc(100vh - 76px);
   grid-column: 5 / span 12;
   position: sticky;
-  top: 60px;
+  top: 66px;
   right: 0;
+}
+
+.references {
+  margin-bottom: 80px;
 }
 
 /** text styles **/
@@ -90,7 +98,7 @@ p {
 }
 .trigger, .trigger span {
   text-transform: uppercase;
-  color: #942317;
+  color: var(--hi-col);
 }
 .meta {
   text-transform: uppercase;

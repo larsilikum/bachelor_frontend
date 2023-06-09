@@ -1,23 +1,29 @@
 <template>
-  <header>
-    <nav-bar/>
-  </header>
-  <main>
-    <router-view :key="$route.fullPath"></router-view>
-  </main>
+  <div id="app-container">
+      <nav-bar/>
+      <router-view :key="$route.fullPath" class="main"></router-view>
+  </div>
 </template>
 
 <script setup>
-import {onMounted} from "vue";
+import {onMounted, ref} from "vue";
 import NavBar from "./components/NavBar.vue";
+import {useColorStore} from "./store/bg.js";
+import {storeToRefs} from "pinia";
 
+const colorStore = useColorStore()
+const { getColors } = storeToRefs(colorStore)
 // request the generated URL with your favorite HTTP request library
 onMounted(async () => {
 })
 </script>
 
 <style scoped>
-main {
-  margin-top: 50px;
+#app-container{
+  background-color: v-bind(getColors.bg);
+}
+:deep(*) {
+  --bg-col: v-bind(getColors.bg);
+  --hi-col: v-bind(getColors.highlight);
 }
 </style>

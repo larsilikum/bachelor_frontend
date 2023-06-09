@@ -16,8 +16,12 @@ import { ref, onMounted } from 'vue'
 import * as d3 from 'd3'
 import { useRouter } from 'vue-router'
 import {useItemStore} from '../../store/index.js'
+import {useColorStore} from "../../store/bg.js";
 
 const store = useItemStore()
+const colorStore = useColorStore()
+const getColorsOfCategory = colorStore.getColorsOfCategory
+
 const router = useRouter()
 const map = ref(null);
 const elements = ref([])
@@ -28,7 +32,7 @@ const dimensions = ref({
   width: 1920,
   height: 900
 })
-
+colorStore.setBgColor('defaultCol')
 
 onMounted(async() => {
   elements.value = JSON.parse(JSON.stringify(await store.getItems))
@@ -56,10 +60,7 @@ onMounted(async() => {
         ? element.category.parentCategory.title
         : element.category.title;
     categoryCounts[category]++
-    if(category === 'text') element.color = '#AB4DC7'
-    else if(category === 'person') element.color = '#942317'
-    else if(category === 'image') element.color = '#048ECA'
-    else if(category === 'symbol') element.color = '#543A0A'
+    element.color = (getColorsOfCategory(category)).highlight
 
     element.connectedElementIds = element.references.map(ref => ref.related_item_id.id);
   })

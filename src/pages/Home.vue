@@ -8,6 +8,10 @@
 <script setup>
 
 import HomeBackground from "../components/HomeBackground.vue";
+import {useColorStore} from "../store/bg.js";
+const colorStore = useColorStore()
+
+colorStore.setBgColor('defaultCol')
 </script>
 
 <style scoped>
@@ -15,7 +19,6 @@ import HomeBackground from "../components/HomeBackground.vue";
   position: fixed;
   top: 0;
   left: 0;
-  z-index: -1;
 }
 h1 {
   font-size: 19vw;

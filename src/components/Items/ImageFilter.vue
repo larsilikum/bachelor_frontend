@@ -3,7 +3,7 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from "vue"
+import {onMounted, onBeforeUnmount, ref} from "vue"
 import P5 from 'p5'
 
 const provider = 'http://localhost:8055'
@@ -11,6 +11,7 @@ const imgApi = provider + '/assets/'
 const props = defineProps(['display', 'spacing', 'index'])
 const container = ref(null)
 const seed = Math.random()*100
+let sketch
 
 onMounted(() => {
   const script = function (p5) {
@@ -196,28 +197,30 @@ onMounted(() => {
     }
     p5.createTextImage = (text) => {
       p5.textFont(font)
-      p5.textSize(150)
+      let height = container.value.clientHeight - 20
+      p5.textSize(height)
       let width = p5.textWidth(text)
-      let height = 150
       const dim = width / height
-      if(width > 1440) {
-        width = 1440
+      console.log(width)
+      if(width > container.value.clientWidth - 20) {
+        width = container.value.clientWidth - 20
         height = width / dim
-      } else {
-        height = container.value.clientHeight - 20
-        width = dim * height
       }
-      const b = p5.createGraphics(width + 20, height + 20)
+      const b = p5.createGraphics(container.value.clientWidth, container.value.clientHeight)
       b.fill(c)
       b.textFont(font)
       b.textSize(height)
       const textWidth = b.textWidth(text)
-      const margin = (width - textWidth) / 2
-      b.text(text, margin, height - height/5)
+      const margin = (b.width - textWidth) / 2
+      const heightMargin = (b.height - height) / 2
+      b.text(text, margin, heightMargin + height*0.8)
       return b
     }
   }
-  new P5(script)
+  sketch = new P5(script)
+})
+onBeforeUnmount(() => {
+  sketch.remove() // this will remove the canvas and stop the sketch
 })
 </script>
 

@@ -3,10 +3,11 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from "vue"
+import {onBeforeUnmount, onMounted, ref} from "vue"
 import P5 from 'p5'
 
 const container = ref(null)
+let sketch
 
 onMounted(() => {
   const script = function (p5) {
@@ -53,7 +54,10 @@ onMounted(() => {
       p5.loop()
     }
   }
-  new P5(script)
+  sketch = new P5(script)
+})
+onBeforeUnmount(() => {
+  sketch.remove() // this will remove the canvas and stop the sketch
 })
 </script>
 
