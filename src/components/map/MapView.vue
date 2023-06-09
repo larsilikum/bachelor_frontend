@@ -1,10 +1,10 @@
 <template>
   <div id="map-container">
     <aside id="side">
-      <p class="big-type" id="title">{{elementTitle}}</p>
+      <p class="big-type" id="title">{{ elementTitle }}</p>
       <p class="big-type">Connected Items:</p>
       <template v-if="connections.length">
-        <span v-for="connection in connections">{{connection.related_item_id.title}}<br></span>
+        <span v-for="connection in connections">{{ connection.related_item_id.title }}<br></span>
       </template>
     </aside>
     <div id="map" ref="map"></div>
@@ -12,9 +12,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import {ref, onMounted} from 'vue'
 import * as d3 from 'd3'
-import { useRouter } from 'vue-router'
+import {useRouter} from 'vue-router'
 import {useItemStore} from '../../store/index.js'
 import {useColorStore} from "../../store/bg.js";
 
@@ -34,17 +34,42 @@ const dimensions = ref({
 })
 colorStore.setBgColor('defaultCol')
 
-onMounted(async() => {
-  elements.value = JSON.parse(JSON.stringify(await store.getItems))
-  const categories = await store.getCategories
+onMounted(async () => {
+  //elements.value = JSON.parse(JSON.stringify(await store.getItems))
+  elements.value = createFakeData(250)
+  //const categories = await store.getCategories
+  const categories = [
+    {title: 'image', parentCategory: null},
+    {title: 'text', parentCategory: null},
+    {title: 'symbol', parentCategory: null},
+    {title: 'person', parentCategory: null},
+    {title: 'test 1', parentCategory: {title: 'person', parentCategory: null}},
+    {title: 'test 2', parentCategory: {title: 'person', parentCategory: null}},
+    {title: 'test 3', parentCategory: {title: 'person', parentCategory: null}},
+    {title: 'test 4', parentCategory: {title: 'person', parentCategory: null}},
+    {title: 'test 5', parentCategory: {title: 'image', parentCategory: null}},
+    {title: 'test 6', parentCategory: {title: 'image', parentCategory: null}},
+    {title: 'test 7', parentCategory: {title: 'image', parentCategory: null}},
+    {title: 'test 8', parentCategory: {title: 'image', parentCategory: null}},
+    {title: 'test 9', parentCategory: {title: 'image', parentCategory: null}},
+    {title: 'test 10', parentCategory: {title: 'text', parentCategory: null}},
+    {title: 'test 11', parentCategory: {title: 'text', parentCategory: null}},
+    {title: 'test 12', parentCategory: {title: 'text', parentCategory: null}},
+    {title: 'test 13', parentCategory: {title: 'text', parentCategory: null}},
+    {title: 'test 14', parentCategory: {title: 'text', parentCategory: null}},
+    {title: 'test 15', parentCategory: {title: 'symbol', parentCategory: null}},
+    {title: 'test 16', parentCategory: {title: 'symbol', parentCategory: null}},
+    {title: 'test 17', parentCategory: {title: 'symbol', parentCategory: null}},
+    {title: 'test 18', parentCategory: {title: 'symbol', parentCategory: null}}
+  ]
 
   dimensions.value.width = map.value.clientWidth
   dimensions.value.height = map.value.clientHeight
 
   const mainCategoryCounts = categories.reduce((acc, cat) => {
-      let key = cat.parentCategory ? cat.parentCategory.title : cat.title;
-      acc[key] = (acc[key] || [])
-      acc[key].push(cat)
+    let key = cat.parentCategory ? cat.parentCategory.title : cat.title;
+    acc[key] = (acc[key] || [])
+    acc[key].push(cat)
 
     return acc;
   }, {});
@@ -67,10 +92,10 @@ onMounted(async() => {
 
 
   // Determine grid size based on the category with the most elements
-  const gridSize = Math.ceil(Math.sqrt(Math.max(...Object.values(categoryCounts)) * 30 ));
+  const gridSize = Math.ceil(Math.sqrt(Math.max(...Object.values(categoryCounts)) * 10));
 
   // Create the grid
-  const grid = Array.from({ length: gridSize }, () => Array(gridSize).fill(null));
+  const grid = Array.from({length: gridSize}, () => Array(gridSize).fill(null));
 
 
   const minRadius = 10
@@ -87,7 +112,7 @@ onMounted(async() => {
     element.references.forEach(reference => {
       const referencedId = reference.related_item_id.id;
       const relEl = elements.value.find(el => el.id === referencedId)
-      if(relEl) relEl.connectedElementIds.push(element.id)
+      if (relEl) relEl.connectedElementIds.push(element.id)
       if (referenceCounts.has(referencedId)) {
         referenceCounts.set(referencedId, referenceCounts.get(referencedId) + 1);
       } else {
@@ -107,69 +132,67 @@ onMounted(async() => {
     element.referenceCount = referenceCounts.get(element.id) || 0;
 
     // Add the radius size
-    element.radiusSize = element.referenceCount * 15 + minRadius
+    element.radiusSize = element.referenceCount * 6 + minRadius
 
     element.references.forEach(reference => {
       let relatedElement = elements.value.find(e => e.id === reference.related_item_id.id);
       if (relatedElement) {
-        linesData.push({ source: element, target: relatedElement });
+        linesData.push({source: element, target: relatedElement});
       }
     });
   });
 
-  const categoryBasePositions = {
-  };
+  const categoryBasePositions = {};
 
   const categoryQuadrants = {
     text: {
       top: 0,
       left: 0,
-      right: dimensions.value.width/2,
-      bottom: dimensions.value.height/2
+      right: dimensions.value.width / 2,
+      bottom: dimensions.value.height / 2
     },
     symbol: {
       top: 0,
-      left: dimensions.value.width/2,
+      left: dimensions.value.width / 2,
       right: dimensions.value.width,
-      bottom: dimensions.value.height/2
+      bottom: dimensions.value.height / 2
     },
     person: {
-      top: dimensions.value.height/2,
-      left: dimensions.value.width/2,
+      top: dimensions.value.height / 2,
+      left: dimensions.value.width / 2,
       right: dimensions.value.width,
       bottom: dimensions.value.height
     },
     image: {
-      top: dimensions.value.height/2,
+      top: dimensions.value.height / 2,
       left: 0,
-      right: dimensions.value.width/2,
+      right: dimensions.value.width / 2,
       bottom: dimensions.value.height
     },
   }
 
-for(const key in categoryQuadrants) {
-  const count = mainCategoryCounts[key].length
-  const amntX = Math.ceil(Math.sqrt(count))
-  const amntY = Math.ceil(count/amntX)
-  const width = dimensions.value.width / (2*amntX)
-  const height = dimensions.value.height / (2*amntY)
-  const top = categoryQuadrants[key].top
-  const left = categoryQuadrants[key].left
+  for (const key in categoryQuadrants) {
+    const count = mainCategoryCounts[key].length
+    const amntX = Math.ceil(Math.sqrt(count))
+    const amntY = Math.ceil(count / amntX)
+    const width = dimensions.value.width / (2 * amntX)
+    const height = dimensions.value.height / (2 * amntY)
+    const top = categoryQuadrants[key].top
+    const left = categoryQuadrants[key].left
 
-  for(let i = 0; i < count ; i++) {
-    const cat = mainCategoryCounts[key][i].title
+    for (let i = 0; i < count; i++) {
+      const cat = mainCategoryCounts[key][i].title
 
-    const xS = i%amntX
-    const yS = Math.floor(i/amntX)
-    const x = xS * width + width/2
-    const y = yS * height + height/2
-    categoryBasePositions[cat] = {
-      x: left + x,
-      y: top + y
+      const xS = i % amntX
+      const yS = Math.floor(i / amntX)
+      const x = xS * width + width / 2
+      const y = yS * height + height / 2
+      categoryBasePositions[cat] = {
+        x: left + x,
+        y: top + y
+      }
     }
   }
-}
-console.log(categoryBasePositions)
 
   //calculate position
   elements.value.forEach((element) => {
@@ -219,9 +242,7 @@ console.log(categoryBasePositions)
   });
 
 
-
-
-  elements.value.sort((a , b) => b.radiusSize - a.radiusSize)
+  elements.value.sort((a, b) => b.radiusSize - a.radiusSize)
 
   // Convert your object into an array of objects
   let categoriesArray = Object.entries(categoryBasePositions).map(([category, position]) => ({
@@ -238,8 +259,8 @@ console.log(categoryBasePositions)
       .attr("y", d => d.y)
       .text(d => d.category)
       .attr("font-family", "Lunchtype, sans-serif")  // Set the font as you need
-      .attr("font-size", "20px")          // Set the size as you need
-      .attr("fill", "#331917")
+      .attr("font-size", d => Object.keys(categoryQuadrants).includes(d.category) ? "70px" : "20px")
+      .attr("fill", d => (getColorsOfCategory(d.category)).highlight)
       .attr("pointer-events", "none")
 
   // Draw lines...
@@ -267,73 +288,163 @@ console.log(categoryBasePositions)
       .style("fill", "transparent")
       .style("cursor", "pointer")
 
-for(const category in categories) {
+  for (const category in categories) {
 
-  let boundaryNodes = [];
-  let outerShapePath = d3.path();
-  const title = categories[category].title
+    let boundaryNodes = [];
+    let outerShapePath = d3.path();
+    const title = categories[category].title
+    const mainCat = categories[category].parentCategory ? categories[category].parentCategory.title : categories[category].title
+    const col = (getColorsOfCategory(mainCat)).highlight
 
 // Calculate boundary nodes
 
-  for (let i = 0; i < grid.length; i++) {
-    let col = grid[i];
-    col = col.filter(el => el && el.category.title === title)
-    let minNode = col[d3.minIndex(col, d => d ? d.y : Infinity)];
-    let maxNode = col[d3.maxIndex(col, d => d ? d.y : -1)];
-    if (minNode && maxNode) boundaryNodes.push(minNode, maxNode);
-  }
-
-  for (let i = 0; i < grid[0].length; i++) {
-    let row = grid.map(col => col[i]);
-    row = row.filter(el => el && el.category.title === title)
-    let minNode = row[d3.minIndex(row, d => d ? d.x : Infinity)];
-    let maxNode = row[d3.maxIndex(row, d => d ? d.x : -1)];
-    //console.log(minNode, maxNode)
-    if (minNode && maxNode) boundaryNodes.push(minNode, maxNode);
-  }
-  boundaryNodes = (function (arr) {
-    let m = {}, newarr = []
-    for (let i = 0; i < arr.length; i++) {
-      let v = arr[i];
-      if (!m[v.id]) {
-        newarr.push(v);
-        m[v.id] = true;
-      }
+    for (let i = 0; i < grid.length; i++) {
+      let col = grid[i];
+      col = col.filter(el => el && el.category.title === title)
+      let minNode = col[d3.minIndex(col, d => d ? d.y : Infinity)];
+      let maxNode = col[d3.maxIndex(col, d => d ? d.y : -1)];
+      if (minNode && maxNode) boundaryNodes.push(minNode, maxNode);
     }
-    return newarr;
-  })(boundaryNodes);
 
-  const avgX = boundaryNodes.reduce(function(p,c,i){return p+(c.x-p)/(i+1)},0)
-  const avgY = boundaryNodes.reduce(function(p,c,i){return p+(c.y-p)/(i+1)},0)
+    for (let i = 0; i < grid[0].length; i++) {
+      let row = grid.map(col => col[i]);
+      row = row.filter(el => el && el.category.title === title)
+      let minNode = row[d3.minIndex(row, d => d ? d.x : Infinity)];
+      let maxNode = row[d3.maxIndex(row, d => d ? d.x : -1)];
+      //console.log(minNode, maxNode)
+      if (minNode && maxNode) boundaryNodes.push(minNode, maxNode);
+    }
+    boundaryNodes = (function (arr) {
+      let m = {}, newarr = []
+      for (let i = 0; i < arr.length; i++) {
+        let v = arr[i];
+        if (!m[v.id]) {
+          newarr.push(v);
+          m[v.id] = true;
+        }
+      }
+      return newarr;
+    })(boundaryNodes);
+
+
+    const avgX = boundaryNodes.reduce(function (p, c, i) {
+      return p + (c.x - p) / (i + 1)
+    }, 0)
+    const avgY = boundaryNodes.reduce(function (p, c, i) {
+      return p + (c.y - p) / (i + 1)
+    }, 0)
 
 // Sort nodes clockwise
-  boundaryNodes.sort((a, b) => Math.atan2(a.y - avgY, a.x - avgX) - Math.atan2(b.y - avgY, b.x - avgX));
-  if(boundaryNodes.length) outerShapePath.moveTo(boundaryNodes[0].x, boundaryNodes[0].y)
+    boundaryNodes.sort((a, b) => Math.atan2(a.y - avgY, a.x - avgX) - Math.atan2(b.y - avgY, b.x - avgX));
+    console.log('hello')
 // Draw shape
-  for (let i = 0; i < boundaryNodes.length; i++) {
-    const margin = 10
-    let node = boundaryNodes[i];
-    let prevNode = boundaryNodes[i - 1] || boundaryNodes[boundaryNodes.length - 1];
-    let nextNode = boundaryNodes[(i + 1) % boundaryNodes.length];
-    let isCorner = (node.x !== prevNode.x && node.x !== nextNode.x) || (node.y !== prevNode.y && node.y !== nextNode.y);
-    if (isCorner) {
-      // Draw two points for corner nodes
-      outerShapePath.bezierCurveTo(nextNode.x - 10, nextNode.y, node.x, node.y, nextNode.x, nextNode.y);
-      // outerShapePath.lineTo(node.x, node.y - node.radius - margin);
-    } else {
-      // Draw one point for other nodes
-      outerShapePath.bezierCurveTo(nextNode.x - 10, nextNode.y, node.x, node.y, nextNode.x, nextNode.y);
+    for (let i = 0; i < (boundaryNodes.length !== 0 ? boundaryNodes.length + 1 : 0); i++) {
+      const margin = 10
+      const index = i % (boundaryNodes.length)
+      let node = boundaryNodes[index];
+      node.forgetYDiff = false
+      node.forgetXDiff = false
+      let prevNode = boundaryNodes[index - 1] || boundaryNodes[boundaryNodes.length - 1];
+      let nextNode = boundaryNodes[(index + 1) % boundaryNodes.length];
+      let isCorner = !(node.x === prevNode.x && node.x === nextNode.x) && !(node.y === prevNode.y && node.y === nextNode.y);
+      const deltaX = node.x - prevNode.x
+      const deltaY = node.y - prevNode.y
+      let dirX = deltaX !== 0 ? deltaX / Math.abs(deltaX) : 0
+      let dirY = deltaY !== 0 ? deltaY / Math.abs(deltaY) : 0
+
+      const deltaXNext = nextNode.x - node.x
+      const deltaYNext = nextNode.y - node.y
+      let dirXNext = deltaXNext !== 0 ? deltaXNext / Math.abs(deltaXNext) : 0
+      let dirYNext = deltaYNext !== 0 ? deltaYNext / Math.abs(deltaYNext) : 0
+
+      if(isCorner && (dirX + dirXNext === 0 || dirY + dirYNext === 0)) {
+        node.isSpecialCorner = true
+        if(dirX + dirY > 1 || dirXNext + dirYNext > 1) {
+          node.forgetYDiff = true
+          dirX = 0
+          dirYNext = 0
+        } else {
+          node.forgetXDiff = true
+          dirY = 0
+          dirXNext = 0
+        }
+      } else {
+        if(prevNode.forgetYDiff) dirY = 0
+        if(prevNode.forgetXDiff) dirX = 0
+      }
+
+      const lengthX = dimensions.value.width / gridSize
+      const lengthY = dimensions.value.width / gridSize
+
+      const prevXPos = (dirX * (prevNode.radiusSize + margin))
+      const prevYPos = (dirY * (prevNode.radiusSize + margin))
+      const xPos = (dirX * (node.radiusSize + margin))
+      const yPos = (dirY * (node.radiusSize + margin))
+      const lengthXPos = dirX * lengthX / 2
+      const lengthYPos = dirY * lengthY / 2
+
+      const xPosNext = (dirXNext * (node.radiusSize + margin))
+      const yPosNext = (dirYNext * (node.radiusSize + margin))
+
+      if(i === 0) {
+        outerShapePath.moveTo(node.x + yPosNext, node.y - xPosNext)
+      } else if(node.isSpecialCorner) {
+        if(prevNode.forgetXDiff) {
+          const extraLength = ((node.y - prevNode.y) / Math.abs(node.y - prevNode.y)) * (prevNode.radiusSize + margin)
+          outerShapePath.bezierCurveTo(
+              prevNode.x + extraLength,
+              prevNode.y - prevXPos,
+              node.x - lengthXPos + yPos,
+              node.y - xPos - lengthYPos,
+              node.x + yPos, node.y - xPos)
+        } else {
+          const extraLength = ((node.x - prevNode.x) / Math.abs(node.x - prevNode.x)) * (prevNode.radiusSize + margin)
+          outerShapePath.bezierCurveTo(
+              prevNode.x + prevYPos,
+              prevNode.y - extraLength,
+              node.x - lengthXPos + yPos,
+              node.y - xPos - lengthYPos,
+              node.x + yPos, node.y - xPos)
+        }
+
+      } else {
+        outerShapePath.bezierCurveTo(
+            prevNode.x + lengthXPos + prevYPos,
+            prevNode.y - prevXPos + lengthYPos,
+            node.x - lengthXPos + yPos,
+            node.y - xPos - lengthYPos,
+            node.x + yPos, node.y - xPos)
+      }
+
+      if (isCorner && (dirX === 0 || dirY === 0) && (dirXNext === 0 || dirYNext === 0) && i !== 0) {
+        outerShapePath.bezierCurveTo(
+            node.x + xPos / 2 + yPos,
+            node.y - xPos + yPos / 2,
+            node.x - xPosNext / 2 + yPosNext,
+            node.y - xPosNext - yPosNext / 2,
+            node.x + yPosNext, node.y - xPosNext)
+      }
+
     }
-  }
-
+    if(boundaryNodes.length === 1) {
+      let node = boundaryNodes[0]
+      const margin = 10
+      const rad = margin + node.radiusSize
+      outerShapePath.moveTo(node.x + rad, node.y)
+      outerShapePath.bezierCurveTo(node.x + rad, node.y + rad/2, node.x + rad /2, node.y + rad, node.x, node.y + rad )
+      outerShapePath.bezierCurveTo(node.x - rad / 2, node.y + rad, node.x - rad , node.y + rad, node.x - rad, node.y )
+      outerShapePath.bezierCurveTo(node.x - rad, node.y - rad/2, node.x - rad /2, node.y - rad, node.x, node.y - rad )
+      outerShapePath.bezierCurveTo(node.x + rad / 2, node.y - rad, node.x + rad, node.y - rad / 2, node.x + rad, node.y)
+    }
+    outerShapePath.closePath()
 // Add shape to your SVG
-  svg.append("path")
-      .attr("d", outerShapePath.toString())
-      .attr("fill", "none")
-      .attr("stroke", "black")
-      .attr("stroke-width", 2)
-}
-
+    svg.append("path")
+        .attr("d", outerShapePath.toString())
+        .attr("fill", "none")
+        .attr("stroke", col)
+        .attr("stroke-dasharray", 5)
+        .attr("stroke-width", 2)
+  }
 
 
   // Handle interactions...
@@ -346,7 +457,7 @@ for(const category in categories) {
         connections.value = data.references
         data.connectedElementIds.forEach(id => {
           const connectedElement = elements.value.find(e => e.id === id);
-          if(!connections.value.find(e => e.related_item_id.id === connectedElement.id)) connections.value.push({related_item_id: connectedElement})
+          if (!connections.value.find(e => e.related_item_id.id === connectedElement.id)) connections.value.push({related_item_id: connectedElement})
           if (connectedElement) connectedElement.connectionIsHovered = true;
         });
         circles
@@ -394,19 +505,42 @@ function getClosestAvailableCell(grid, startX, startY) {
     }
     return false;
   };
-  if(add(0,0)) return { x, y }
+  if (add(0, 0)) return {x, y}
   while (distance < grid.length) {
     distance++;
-    const length = distance*2 - 1
-    for (let i = 0; i <= length; i++) if (add(-distance + i, distance)) return { x, y };
-    for (let i = 0; i <= length; i++) if (add(distance, distance - i)) return { x, y };
-    for (let i = 0; i <= length; i++) if (add(-distance, -distance + i)) return { x, y };
-    for (let i = 0; i <= length; i++) if (add(distance - i, -distance)) return { x, y };
+    const length = distance * 2 - 1
+    for (let i = 0; i <= length; i++) if (add(-distance + i, distance)) return {x, y};
+    for (let i = 0; i <= length; i++) if (add(distance, distance - i)) return {x, y};
+    for (let i = 0; i <= length; i++) if (add(-distance, -distance + i)) return {x, y};
+    for (let i = 0; i <= length; i++) if (add(distance - i, -distance)) return {x, y};
   }
 }
 
 function createFakeData(numElements = 150) {
-  const categories = ['text', 'symbol', 'image', 'person'];
+  const categories = [
+      {title: 'image', parentCategory: null},
+    {title: 'text', parentCategory: null},
+    {title: 'symbol', parentCategory: null},
+    {title: 'person', parentCategory: null},
+    {title: 'test 1', parentCategory: {title: 'person', parentCategory: null}},
+    {title: 'test 2', parentCategory: {title: 'person', parentCategory: null}},
+    {title: 'test 3', parentCategory: {title: 'person', parentCategory: null}},
+    {title: 'test 4', parentCategory: {title: 'person', parentCategory: null}},
+    {title: 'test 5', parentCategory: {title: 'image', parentCategory: null}},
+    {title: 'test 6', parentCategory: {title: 'image', parentCategory: null}},
+    {title: 'test 7', parentCategory: {title: 'image', parentCategory: null}},
+    {title: 'test 8', parentCategory: {title: 'image', parentCategory: null}},
+    {title: 'test 9', parentCategory: {title: 'image', parentCategory: null}},
+    {title: 'test 10', parentCategory: {title: 'text', parentCategory: null}},
+    {title: 'test 11', parentCategory: {title: 'text', parentCategory: null}},
+    {title: 'test 12', parentCategory: {title: 'text', parentCategory: null}},
+    {title: 'test 13', parentCategory: {title: 'text', parentCategory: null}},
+    {title: 'test 14', parentCategory: {title: 'text', parentCategory: null}},
+    {title: 'test 15', parentCategory: {title: 'symbol', parentCategory: null}},
+    {title: 'test 16', parentCategory: {title: 'symbol', parentCategory: null}},
+    {title: 'test 17', parentCategory: {title: 'symbol', parentCategory: null}},
+    {title: 'test 18', parentCategory: {title: 'symbol', parentCategory: null}}
+  ]
 
   // Helper function to generate random number
   function getRandomInt(min, max) {
@@ -414,12 +548,12 @@ function createFakeData(numElements = 150) {
   }
 
   // Generate elements
-  const elements = Array.from({ length: numElements }, (_, i) => {
+  const elements = Array.from({length: numElements}, (_, i) => {
     const category = categories[getRandomInt(0, categories.length - 1)];
     return {
       id: i,
       title: `Element ${i}`,
-      category: { title: category, parentCategory: null },
+      category: category,
       references: [],
     };
   });
@@ -459,13 +593,16 @@ function createFakeData(numElements = 150) {
   overflow-y: hidden;
   padding: 0 10px 10px 10px;
 }
+
 #side {
   flex: 1;
   flex-shrink: 0;
 }
+
 #title {
   color: v-bind(elementColor);
 }
+
 #map {
   background-color: #CBCACA;
   flex: 5;
