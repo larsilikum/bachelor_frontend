@@ -20,7 +20,7 @@ onMounted(async () => {
 
 <style scoped>
 #app-container{
-  background-color: v-bind(getColors.bg);
+  background-color: var(--bg);
 }
 :deep(*) {
   --bg-col: v-bind(getColors.bg);

@@ -13,6 +13,7 @@ const props = defineProps(['display', 'spacing', 'index', 'cat'])
 const container = ref(null)
 const seed = Math.random()*100
 const bgStore = useColorStore()
+const col = ref((bgStore.getColorsOfCategory(props.cat)).highlight)
 
 let sketch
 
@@ -27,9 +28,10 @@ onMounted(() => {
     let pixelVals = []
     let pixelColors = []
     let spacing = props.spacing
+    const noiseSpacing = spacing * 3
     let buffer = []
     let font
-    let c = p5.color( (bgStore.getColorsOfCategory(props.cat)).highlight )
+    let c = p5.color( col.value )
     let i = {
       width: 0,
       height: 0
@@ -185,10 +187,10 @@ onMounted(() => {
 
       const xMax = Math.floor(b.width / spacing)
       const yMax = Math.floor(b.height / spacing)
-      const size = (b.width + b.height) / 15
+      const size = (b.width + b.height) /15
       for (let x = 0; x < xMax; x++) {
         for (let y = 0; y < yMax; y++) {
-          const diff = isSymbol ? (b.noise(x / 25, y / 25) - (0.31 + pixelVals[x][y] / 5000)) * 70 : 0
+          const diff = isSymbol ? (b.noise(x / noiseSpacing, y / noiseSpacing) - (0.31 + pixelVals[x][y] / 5000)) * 40 : 0
           const div = isSymbol ? diff / 5 : 0
           const radius = b.lerp(b.constrain(size / (Math.sqrt(pixelVals[x][y] + 1) + diff) - size / (14 + div), 0, size), spacing, it / 6)
 
@@ -210,7 +212,7 @@ onMounted(() => {
         height = width / dim
       }
       const b = p5.createGraphics(container.value.clientWidth, container.value.clientHeight)
-      b.fill(c)
+      b.fill(0)
       b.textFont(font)
       b.textSize(height)
       const textWidth = b.textWidth(text)
@@ -234,7 +236,7 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  outline: 2px solid var(--pri);
+  outline: 2px solid v-bind(col);
 
 }
 </style>

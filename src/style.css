@@ -13,10 +13,11 @@
 }
 *::selection {
     background: var(--pri);
-    color: #CBCACA;
+    color: #CACACA;
 }
 :root {
     --pri: #331917;
+    --bg: #CACACA;
     font-size: 18px;
     line-height: 1.2;
 }

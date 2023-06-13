@@ -9,11 +9,11 @@ export const useColorStore = defineStore('colors', {
         categoryColors: {
             image: {
                 bg: '#CECFC5',
-                highlight: '#848D13'
+                highlight: '#6EBD1E'
             },
             text: {
                 bg: '#C7D6DD',
-                highlight: '#048ECA'
+                highlight: '#1EB5E4'
             },
             symbol: {
                 bg: '#DCCBC9',
@@ -21,7 +21,7 @@ export const useColorStore = defineStore('colors', {
             },
             person: {
                 bg: '#D7CCB9',
-                highlight: '#C58714'
+                highlight: '#E3FA5B'
             },
             defaultCol: {
                 bg: '#CBCACA',

@@ -2,23 +2,24 @@
   <article>
     <div class="info" v-if="item">
       <!--      <h1 class="big-type">{{item.title}}</h1>-->
-      <p class="trigger">
+      <p class="trigger" v-if="item.trigger">
         CONTAINS: <br>
-        <span v-for="trigger in item.trigger">{{ trigger.trigger_id.title }} <br></span>
+        <span v-for="trigger in item.trigger" class="trigger-text">{{ trigger.trigger_id.title }} <br></span>
       </p>
       <p class="meta">
         <span v-show="item.uploaded">POSTED: {{ item.uploaded }}<br></span>
         SOURCE: <a v-if="item.source" :href="item.source.url" target="_blank">{{ item.source.title }}</a><br>
         UPLOADED: {{ new Date(item.date_created).toLocaleDateString('en-GB', dateOptions) }} <br>
+        Category: {{item.category.title}}
       </p>
       <p class="description" v-html="item.description">
       </p>
       <div class="references" v-if="item.references.length">
-        <p class="big-type">Referenced Items</p>
+        <p class="big-type">Linking to</p>
         <item-preview v-for="reference in item.references" :item="reference.related_item_id" index="1"/>
       </div>
       <div class="references" v-if="referring.length">
-        <p class="big-type">Items Referring</p>
+        <p class="big-type">Linked by</p>
         <item-preview v-for="reference in referring" :item="reference" index="2"/>
       </div>
     </div>
@@ -103,9 +104,12 @@ p {
   margin-bottom: 40px;
 }
 
-.trigger, .trigger span {
+.trigger {
   text-transform: uppercase;
+}
+.trigger-text {
   color: var(--hi-col);
+
 }
 
 .meta {
