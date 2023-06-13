@@ -11,6 +11,10 @@
     font-family: Lunchtype, sans-serif;
     color: var(--pri);
 }
+*::selection {
+    background: var(--pri);
+    color: #CBCACA;
+}
 :root {
     --pri: #331917;
     font-size: 18px;
@@ -25,5 +29,9 @@ body {
 .big-type {
     font-family: Lunchtype, sans-serif;
     font-size: 30px;
+    text-transform: uppercase;
+}
+
+.uppercase {
     text-transform: uppercase;
 }

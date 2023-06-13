@@ -26,7 +26,7 @@ a {
   text-decoration: none;
 }
 
-a:hover {
+a:hover, a.router-link-active {
  font-style: italic;
 }
 </style>

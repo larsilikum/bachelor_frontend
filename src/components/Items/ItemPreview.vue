@@ -1,10 +1,11 @@
 <template>
   <router-link :to="`/item/${item.id}`">
     <div class="preview-image">
-      <image-filter :display="item.display" spacing="35" :index="index"/>
+      <image-filter :display="item.display" spacing="35" :index="index"
+                    :cat="item.category.parentCategory ? item.category.parentCategory.title : item.category.title"/>
     </div>
     <p v-show="show" class="description" v-html="item.description"></p>
-    <button @click.prevent="showDescription">{{show ? 'hide' : 'show'}} description</button>
+    <button @click.prevent="showDescription">{{ show ? 'hide' : 'show' }} description</button>
   </router-link>
 </template>
 
@@ -43,7 +44,7 @@ button {
   cursor: pointer;
 }
 
-button:hover{
+button:hover {
   font-style: italic;
 }
 

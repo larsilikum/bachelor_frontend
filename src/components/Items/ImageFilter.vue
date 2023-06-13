@@ -5,12 +5,15 @@
 <script setup>
 import {onMounted, onBeforeUnmount, ref} from "vue"
 import P5 from 'p5'
+import {useColorStore} from "../../store/bg.js";
 
 const provider = 'http://localhost:8055'
 const imgApi = provider + '/assets/'
-const props = defineProps(['display', 'spacing', 'index'])
+const props = defineProps(['display', 'spacing', 'index', 'cat'])
 const container = ref(null)
 const seed = Math.random()*100
+const bgStore = useColorStore()
+
 let sketch
 
 onMounted(() => {
@@ -26,7 +29,7 @@ onMounted(() => {
     let spacing = props.spacing
     let buffer = []
     let font
-    let c = p5.color( '#331917' )
+    let c = p5.color( (bgStore.getColorsOfCategory(props.cat)).highlight )
     let i = {
       width: 0,
       height: 0

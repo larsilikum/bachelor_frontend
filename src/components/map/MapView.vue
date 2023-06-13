@@ -347,7 +347,7 @@ onMounted(async () => {
         .attr("x", avgX || categoryBasePositions[title].x)
         .attr("y", avgY || categoryBasePositions[title].y)
         .attr("font-family", "Lunchtype, sans-serif")  // Set the font as you need
-        .attr("font-size", Object.keys(categoryQuadrants).includes(title) ? "70px" : "20px")
+        .attr("font-size", Object.keys(categoryQuadrants).includes(title) ? "48px" : "20px")
         .attr("text-anchor", "middle")
         .attr("fill", col)
         .attr("pointer-events", "none")
@@ -357,7 +357,7 @@ onMounted(async () => {
         .attr("d", outerShapePath.toString())
         .attr("fill", "none")
         .attr("stroke", col)
-        .attr("stroke-width", 1)
+        .attr("stroke-width", 2)
 
 
 
