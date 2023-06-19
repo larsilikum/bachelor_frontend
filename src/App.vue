@@ -1,8 +1,6 @@
 <template>
-  <div id="app-container">
       <nav-bar/>
       <router-view :key="$route.fullPath" class="main"></router-view>
-  </div>
 </template>
 
 <script setup>
@@ -19,9 +17,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-#app-container{
-  background-color: var(--bg);
-}
 :deep(*) {
   --bg-col: v-bind(getColors.bg);
   --hi-col: v-bind(getColors.highlight);

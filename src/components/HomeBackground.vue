@@ -49,8 +49,7 @@ onMounted(() => {
     }
 
     p5.mouseMoved = _ => {
-      timeNow = Date.now()
-      if(timeNow - oldTime > 100) p5.loop()
+      p5.loop()
       return false
     }
 

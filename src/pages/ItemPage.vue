@@ -123,9 +123,13 @@ p {
   margin-bottom: 80px;
 }
 
+:deep(a), a {
+  color: var(--pri);
+}
+
 :deep(strong) {
   font-weight: normal;
-  -webkit-text-stroke-width: 10px;
+  -webkit-text-stroke-width: 0.56em; /* 10px/18px */
 }
 
 :deep(strong:hover) {
@@ -134,47 +138,6 @@ p {
   -webkit-text-stroke-width: 0;
 }
 
-:deep(a), a {
-  color: var(--pri);
-}
 
-@keyframes stroke-width {
-  0% {
-    -webkit-text-stroke-width: 10px;
-  }
-  8.3% {
-    -webkit-text-stroke-width: 8.5px;
-  }
-  16.6% {
-    -webkit-text-stroke-width: 7.2px;
-  }
-  25% {
-    -webkit-text-stroke-width: 6.1px;
-  }
-  33.3% {
-    -webkit-text-stroke-width: 5.2px;
-  }
-  41.6% {
-    -webkit-text-stroke-width: 4.3px;
-  }
-  50% {
-    -webkit-text-stroke-width: 3.5px;
-  }
-  58.3% {
-    -webkit-text-stroke-width: 2.7px;
-  }
-  66.6% {
-    -webkit-text-stroke-width: 1.9px;
-  }
-  75% {
-    -webkit-text-stroke-width: 1.1px;
-  }
-  83.3% {
-    -webkit-text-stroke-width: 0.3px;
-  }
-  100% {
-    -webkit-text-stroke-width: 0px;
-  }
-}
 
 </style>

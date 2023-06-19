@@ -7,6 +7,9 @@
     src: url("assets/fonts/lunchtype23-regular-italic-webfont.woff2");
     font-style: italic;
 }
+html {
+    background: var(--bg);
+}
 * {
     font-family: Lunchtype, sans-serif;
     color: var(--pri);
@@ -20,6 +23,24 @@
     --bg: #CACACA;
     font-size: 18px;
     line-height: 1.2;
+}
+.scrollbar_thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--pri) var(--bg) ;
+    -ms-overflow-style: auto;
+}
+.scrollbar_thin::-webkit-scrollbar-thumb {
+    background-color: var(--pri);
+}
+.scrollbar_thin::-webkit-scrollbar-track {
+    background-color: var(--bg);
+}
+.scrollbar_thin::-webkit-scrollbar-corner {
+    background-color: var(--bg);
+}
+.scrollbar_thin::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
 }
 
 body {
@@ -35,4 +56,42 @@ body {
 
 .uppercase {
     text-transform: uppercase;
+}
+@keyframes stroke-width {
+    0% {
+        -webkit-text-stroke-width: 0.56em; /* 10px/18px */
+    }
+    8.3% {
+        -webkit-text-stroke-width: 0.47em; /* 8.5px/18px */
+    }
+    16.6% {
+        -webkit-text-stroke-width: 0.4em; /* 7.2px/18px */
+    }
+    25% {
+        -webkit-text-stroke-width: 0.34em; /* 6.1px/18px */
+    }
+    33.3% {
+        -webkit-text-stroke-width: 0.29em; /* 5.2px/18px */
+    }
+    41.6% {
+        -webkit-text-stroke-width: 0.24em; /* 4.3px/18px */
+    }
+    50% {
+        -webkit-text-stroke-width: 0.19em; /* 3.5px/18px */
+    }
+    58.3% {
+        -webkit-text-stroke-width: 0.15em; /* 2.7px/18px */
+    }
+    66.6% {
+        -webkit-text-stroke-width: 0.11em; /* 1.9px/18px */
+    }
+    75% {
+        -webkit-text-stroke-width: 0.06em; /* 1.1px/18px */
+    }
+    83.3% {
+        -webkit-text-stroke-width: 0.02em; /* 0.3px/18px */
+    }
+    100% {
+        -webkit-text-stroke-width: 0;
+    }
 }

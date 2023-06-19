@@ -36,8 +36,8 @@ colorStore.setBgColor('defaultCol')
 
 onMounted(async () => {
   elements.value = JSON.parse(JSON.stringify(await store.getItems))
-  // elements.value = createFakeData(50)
   const categories = await store.getCategories
+  // elements.value = createFakeData(150)
   // const categories = [
   //   {title: 'image', parentCategory: null},
   //   {title: 'text', parentCategory: null},
@@ -66,7 +66,7 @@ onMounted(async () => {
   dimensions.value.width = map.value.clientWidth
   dimensions.value.height = map.value.clientHeight
 
-  const mainCategoryCounts = categories.reduce((acc, cat) => {
+  const subCategoryCount = categories.reduce((acc, cat) => {
     let key = cat.parentCategory ? cat.parentCategory.title : cat.title;
     acc[key] = (acc[key] || [])
     acc[key].push(cat)
@@ -80,6 +80,7 @@ onMounted(async () => {
     person: 0,
     symbol: 0
   }
+
   elements.value.forEach((element) => {
     let category = element.category.parentCategory
         ? element.category.parentCategory.title
@@ -90,12 +91,13 @@ onMounted(async () => {
     element.connectedElementIds = element.references.map(ref => ref.related_item_id.id);
   })
 
-
-  // Determine grid size based on the category with the most elements
-  const gridSize = Math.ceil(Math.sqrt(Math.max(...Object.values(categoryCounts)) * 10));
+  const amntCells = elements.value.length * 2
+  const aspectRatio = dimensions.value.width / dimensions.value.height
+  const sizeX = Math.ceil(Math.sqrt(amntCells * aspectRatio))
+  const sizeY = Math.ceil(sizeX / aspectRatio)
 
   // Create the grid
-  const grid = Array.from({length: gridSize}, () => Array(gridSize).fill(null));
+  const grid = Array.from({length: sizeX}, () => Array(sizeY).fill(null));
 
 
   const minRadius = 10
@@ -143,45 +145,61 @@ onMounted(async () => {
   });
 
   const categoryBasePositions = {};
+  const catCountsArray = []
+  for (const key in categoryCounts) {
+    catCountsArray.push({title: key, len: categoryCounts[key]})
+  }
+  catCountsArray.sort((a,b) => b.len - a.len)
+  console.log(catCountsArray)
+  const amntEls = elements.value.length
+  const amntFirstHalf = catCountsArray[0].len + catCountsArray[2].len
+  const amntSecHalf = catCountsArray[1].len + catCountsArray[3].len
+  const widthFirstHalf = ((amntFirstHalf / amntEls)) * dimensions.value.width
+  const height0 = ((catCountsArray[0].len / amntFirstHalf)) * dimensions.value.height
+  const height1 = ((catCountsArray[1].len / amntSecHalf)) * dimensions.value.height
 
   const categoryQuadrants = {
-    text: {
+    [catCountsArray[0].title]: {
       top: 0,
       left: 0,
-      right: dimensions.value.width / 2,
-      bottom: dimensions.value.height / 2
+      right: widthFirstHalf,
+      bottom: height0
     },
-    symbol: {
+    [catCountsArray[1].title]: {
       top: 0,
-      left: dimensions.value.width / 2,
+      left: widthFirstHalf,
       right: dimensions.value.width,
-      bottom: dimensions.value.height / 2
+      bottom: height1
     },
-    person: {
-      top: dimensions.value.height / 2,
-      left: dimensions.value.width / 2,
-      right: dimensions.value.width,
+    [catCountsArray[2].title]: {
+      top: height0,
+      left: 0,
+      right: widthFirstHalf,
       bottom: dimensions.value.height
     },
-    image: {
-      top: dimensions.value.height / 2,
-      left: 0,
-      right: dimensions.value.width / 2,
+    [catCountsArray[3].title]: {
+      top: height1,
+      left: widthFirstHalf,
+      right: dimensions.value.width,
       bottom: dimensions.value.height
     },
   }
+  console.log(categoryQuadrants)
 
   for (const key in categoryQuadrants) {
-    const count = mainCategoryCounts[key].length
+    const count = subCategoryCount[key].length
     const amntX = Math.ceil(Math.sqrt(count))
     const amntY = Math.ceil(count / amntX)
-    const width = dimensions.value.width / (2 * amntX)
-    const height = dimensions.value.height / (2 * amntY)
     const top = categoryQuadrants[key].top
     const left = categoryQuadrants[key].left
+    const bottom = categoryQuadrants[key].bottom
+    const right = categoryQuadrants[key].right
+
+    const width = (right - left) / amntX
+    const height = (bottom - top) / amntY
 
     for (let i = 0; i < count; i++) {
-      const cat = mainCategoryCounts[key][i].title
+      const cat = subCategoryCount[key][i].title
 
       const xS = i % amntX
       const yS = Math.floor(i / amntX)
@@ -227,8 +245,8 @@ onMounted(async () => {
 
     // Map weighted position to grid cell
     let cellPosition = {
-      x: Math.floor((avgPosition.x / dimensions.value.width) * gridSize),
-      y: Math.floor((avgPosition.y / dimensions.value.height) * gridSize),
+      x: Math.floor((avgPosition.x / dimensions.value.width) * sizeX),
+      y: Math.floor((avgPosition.y / dimensions.value.height) * sizeY),
     };
     // Get closest available cell
     let availableCell = getClosestAvailableCell(grid, cellPosition.x, cellPosition.y);
@@ -237,8 +255,8 @@ onMounted(async () => {
     grid[availableCell.x][availableCell.y] = element;
 
     // Update element's position to the center of the grid cell
-    element.x = (availableCell.x + 0.5) * (dimensions.value.width / gridSize);
-    element.y = (availableCell.y + 0.5) * (dimensions.value.height / gridSize);
+    element.x = (availableCell.x + 0.5) * (dimensions.value.width / sizeX);
+    element.y = (availableCell.y + 0.5) * (dimensions.value.height / sizeY);
   });
 
 
@@ -545,7 +563,7 @@ function createFakeData(numElements = 150) {
 <style>
 #map-container {
   display: flex;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 66px);
   overflow-y: hidden;
   padding: 0 10px 10px 10px;
 }
