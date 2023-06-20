@@ -17,8 +17,8 @@
 
     <div class="text-block">
       <h2>Using this Site</h2>
-      <p class="description">Various far-right hate symbols and examples of their use can be found on this website. Be aware that you will
-        come across a lot of discriminatory content. You can have a look at the map to see connections between symbols and
+      <p class="description">Various far-right hate symbols and examples of their use can be found on this website. <em>Be aware that you will
+        come across a lot of discriminatory content.</em> You can have a look at the map to see connections between symbols and
         which ones are the most popular. Each entry also has its own detail page, which provides context and further
         information about the symbol displayed.</p>
     </div>
@@ -127,6 +127,9 @@ h1 {
 h2 {
   font-size: 6vw;
   margin: 0;
+}
+em {
+  color: #FE4936;
 }
 .text-block:nth-of-type(odd) h2,.text-block:nth-of-type(even) p {
   grid-column: 1 / span 3;

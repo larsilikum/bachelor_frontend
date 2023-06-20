@@ -17,6 +17,8 @@ import * as d3 from 'd3'
 import {useRouter} from 'vue-router'
 import {useItemStore} from '../../store/index.js'
 import {useColorStore} from "../../store/bg.js";
+import concaveman from 'concaveman';
+
 
 const store = useItemStore()
 const colorStore = useColorStore()
@@ -91,7 +93,7 @@ onMounted(async () => {
     element.connectedElementIds = element.references.map(ref => ref.related_item_id.id);
   })
 
-  const amntCells = elements.value.length * 2
+  const amntCells = elements.value.length * 7
   const aspectRatio = dimensions.value.width / dimensions.value.height
   const sizeX = Math.ceil(Math.sqrt(amntCells * aspectRatio))
   const sizeY = Math.ceil(sizeX / aspectRatio)
@@ -235,8 +237,8 @@ onMounted(async () => {
       }
     });
     let avgPosition = {
-      x: count > 0 ? basePosition.x + ((xSum / count) - basePosition.x) / 6 : basePosition.x,
-      y: count > 0 ? basePosition.y + ((ySum / count) - basePosition.y) / 6 : basePosition.y,
+      x: count > 0 ? basePosition.x + ((xSum / count) - basePosition.x) / 6 : basePosition.x + (5-element.title.length) *5,
+      y: count > 0 ? basePosition.y + ((ySum / count) - basePosition.y) / 6 : basePosition.y + (7-element.title.length) *7,
     };
     // let avgPosition = {
     //   x: basePosition.x,
@@ -280,49 +282,88 @@ onMounted(async () => {
 // Calculate boundary nodes
     const margin = 20
 
-    for (let i = 0; i < grid.length; i++) {
-      let col = grid[i];
-      col = col.filter(el => el && el.category.title === title)
-      let minNode = col[d3.minIndex(col, d => d ? d.y : Infinity)];
-      let maxNode = col[d3.maxIndex(col, d => d ? d.y : -1)];
-      let minN, maxN
-      if( minNode ) {
-        minN = JSON.parse(JSON.stringify(minNode))
-        maxN = JSON.parse(JSON.stringify(maxNode))
-        const minRad = margin + minN.radiusSize
-        const maxRad = margin + maxN.radiusSize
-        minN.outlinePos = {x: minN.x,y:  minN.y - minRad}
-        maxN.outlinePos = {x: maxN.x,y:  maxN.y + maxRad}
-        boundaryNodes.push(minN, maxN)
+    // for (let i = 0; i < grid.length; i++) {
+    //   let col = grid[i];
+    //   col = col.filter(el => el && el.category.title === title)
+    //   let minNode = col[d3.minIndex(col, d => d ? d.y : Infinity)];
+    //   let maxNode = col[d3.maxIndex(col, d => d ? d.y : -1)];
+    //   let minN, maxN
+    //   if( minNode ) {
+    //     minN = JSON.parse(JSON.stringify(minNode))
+    //     maxN = JSON.parse(JSON.stringify(maxNode))
+    //     const minRad = margin + minN.radiusSize
+    //     const maxRad = margin + maxN.radiusSize
+    //     minN.outlinePos = {x: minN.x,y:  minN.y - minRad}
+    //     maxN.outlinePos = {x: maxN.x,y:  maxN.y + maxRad}
+    //     boundaryNodes.push(minN, maxN)
+    //   }
+    // }
+    // for (let i = 0; i < grid[0].length; i++) {
+    //   let row = grid.map(col => col[i]);
+    //   row = row.filter(el => el && el.category.title === title)
+    //   let minNode = row[d3.minIndex(row, d => d ? d.x : Infinity)];
+    //   let maxNode = row[d3.maxIndex(row, d => d ? d.x : -1)];
+    //   let minN, maxN
+    //   if( minNode ) {
+    //     minN = JSON.parse(JSON.stringify(minNode))
+    //     maxN = JSON.parse(JSON.stringify(maxNode))
+    //     const minRad = margin + minN.radiusSize
+    //     const maxRad = margin + maxN.radiusSize
+    //     minN.outlinePos = {x: minN.x - minRad,y:  minN.y}
+    //     maxN.outlinePos = {x: maxN.x + maxRad,y:  maxN.y}
+    //     boundaryNodes.push(minN, maxN)
+    //   }
+    // }
+    for (const el in elements.value) {
+      const e = elements.value[el]
+      if(e.category.title === title) {
+        const xE = e.x
+        const yE = e.y
+        const length = e.radiusSize + margin
+        const p1 = JSON.parse(JSON.stringify(e))
+        const p2 = JSON.parse(JSON.stringify(e))
+        const p3 = JSON.parse(JSON.stringify(e))
+        const p4 = JSON.parse(JSON.stringify(e))
+        p1.outlinePos = {x: xE + length, y: yE + length}
+        p2.outlinePos = {x: xE - length, y: yE - length}
+        p3.outlinePos = {x: xE - length, y: yE + length}
+        p4.outlinePos = {x: xE + length, y: yE - length}
+        boundaryNodes.push(p1,p2,p3,p4)
+
       }
+
     }
-    for (let i = 0; i < grid[0].length; i++) {
-      let row = grid.map(col => col[i]);
-      row = row.filter(el => el && el.category.title === title)
-      let minNode = row[d3.minIndex(row, d => d ? d.x : Infinity)];
-      let maxNode = row[d3.maxIndex(row, d => d ? d.x : -1)];
-      let minN, maxN
-      if( minNode ) {
-        minN = JSON.parse(JSON.stringify(minNode))
-        maxN = JSON.parse(JSON.stringify(maxNode))
-        const minRad = margin + minN.radiusSize
-        const maxRad = margin + maxN.radiusSize
-        minN.outlinePos = {x: minN.x - minRad,y:  minN.y}
-        maxN.outlinePos = {x: maxN.x + maxRad,y:  maxN.y}
-        boundaryNodes.push(minN, maxN)
-      }
-    }
-    const avgNodes = (function (arr) {
-      let m = {}, newarr = []
-      for (let i = 0; i < arr.length; i++) {
-        let v = arr[i];
-        if (!m[v.id]) {
-          newarr.push(v);
-          m[v.id] = true;
+
+    const avgNodes = boundaryNodes
+
+// Calculate concave hull
+    const concaveHullPoints = avgNodes.map(node => [node.outlinePos.x, node.outlinePos.y]);
+    const concaveHull = concaveHullPoints.length ? concaveman(concaveHullPoints, 200) : [];
+    if(concaveHull.length) concaveHull.pop()
+// Draw shape
+    let firstPoint = true;
+    if(concaveHull.length) {
+      for (let i = 0; i <= concaveHull.length; i++) {
+        const index = i % concaveHull.length;
+        let currentPoint = concaveHull[index];
+        let nextPoint = concaveHull[(index + 1) % concaveHull.length];
+
+        if(firstPoint) {
+          firstPoint = false;
+          let xTo = currentPoint[0] + (- currentPoint[0] + nextPoint[0]) /2
+          let yTo = currentPoint[1] + (- currentPoint[1] + nextPoint[1]) /2
+          outerShapePath.moveTo(xTo, yTo);
+        } else {
+          // Using a fixed radius of 30
+          outerShapePath.arcTo(currentPoint[0], currentPoint[1], nextPoint[0], nextPoint[1], 30);
         }
       }
-      return newarr;
-    })(boundaryNodes);
+    }
+
+
+    outerShapePath.closePath();
+
+
 
 
     const avgX = avgNodes.reduce(function (p, c, i) {
@@ -331,35 +372,6 @@ onMounted(async () => {
     const avgY = avgNodes.reduce(function (p, c, i) {
       return p + (c.y - p) / (i + 1)
     }, 0)
-
-// Sort nodes clockwise
-    boundaryNodes.sort((a, b) => Math.atan2( a.outlinePos.y - avgY, a.outlinePos.x - avgX) - Math.atan2(b.outlinePos.y - avgY, b.outlinePos.x - avgX));
-
-// Draw shape
-    for (let i = 0; i < (boundaryNodes.length !== 0 ? boundaryNodes.length + 1 : 0); i++) {
-      const index = i % (boundaryNodes.length)
-      let node = boundaryNodes[index];
-      let prevNode = boundaryNodes[index - 1] || boundaryNodes[boundaryNodes.length - 1];
-      let deltaX = node.outlinePos.x - prevNode.outlinePos.x
-      let deltaY = node.outlinePos.y - prevNode.outlinePos.y
-      let handleX, handleY
-
-      if((deltaX > 0 && deltaY > 0) || (deltaX < 0 && deltaY < 0)) {
-        handleX = node.outlinePos.x
-        handleY = prevNode.outlinePos.y
-      }  else {
-        handleX = prevNode.outlinePos.x
-        handleY = node.outlinePos.y
-      }
-
-      if(i === 0) {
-        outerShapePath.moveTo(node.outlinePos.x, node.outlinePos.y)
-      } else {
-        outerShapePath.quadraticCurveTo(handleX, handleY, node.outlinePos.x, node.outlinePos.y)
-      }
-
-    }
-    outerShapePath.closePath()
     svg.append("text")
         .text(title)
         .attr("x", avgX || categoryBasePositions[title].x)
@@ -377,7 +389,13 @@ onMounted(async () => {
         .attr("stroke", col)
         .attr("stroke-width", 2)
 
-
+    // svg.selectAll("circle2")
+    //     .data(concaveHull)  // bind elements to circles
+    //     .enter().append("circle")  // create new circle for each element
+    //     .attr("r", d => '5px')  // radius depends on number of references
+    //     .attr("cx", d => d[0])  // random x position
+    //     .attr("cy", d => d[1]) // random y position
+    //     .style("fill", "#331917")
 
   }
 
