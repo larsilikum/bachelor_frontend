@@ -3,7 +3,7 @@ import {defineStore} from "pinia";
 export const useColorStore = defineStore('colors', {
     state: () => ({
         colors: {
-            bg: '#CBCACA',
+            bg: '#CACACA',
             highlight: '#331917'
         },
         categoryColors: {
@@ -24,7 +24,7 @@ export const useColorStore = defineStore('colors', {
                 highlight: '#E3FA5B'
             },
             defaultCol: {
-                bg: '#CBCACA',
+                bg: '#CACACA',
                 highlight: '#331917'
             }
         }

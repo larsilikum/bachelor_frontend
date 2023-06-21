@@ -13,7 +13,7 @@ let sketch
 onMounted(() => {
   const script = function (p5) {
     let spacing = 100
-    let c = p5.color('#FE4936')
+    let c = p5.color('#1EB5E4')
     let xMax, yMax, size
     let timeNow, oldTime
     p5.setup = _ => {

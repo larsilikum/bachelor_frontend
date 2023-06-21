@@ -4,7 +4,7 @@
       <p class="big-type" id="title">{{ elementTitle }}</p>
       <p class="big-type">Connected Items:</p>
       <template v-if="connections.length">
-        <span v-for="connection in connections">{{ connection.related_item_id.title }}<br></span>
+        <span v-for="connection in connections" class="connected-items">{{ connection.related_item_id.title }}<br></span>
       </template>
     </aside>
     <div id="map" ref="map"></div>
@@ -39,7 +39,7 @@ colorStore.setBgColor('defaultCol')
 onMounted(async () => {
   elements.value = JSON.parse(JSON.stringify(await store.getItems))
   const categories = await store.getCategories
-  // elements.value = createFakeData(150)
+  // elements.value = createFakeData(80)
   // const categories = [
   //   {title: 'image', parentCategory: null},
   //   {title: 'text', parentCategory: null},
@@ -93,7 +93,7 @@ onMounted(async () => {
     element.connectedElementIds = element.references.map(ref => ref.related_item_id.id);
   })
 
-  const amntCells = elements.value.length * 7
+  const amntCells = elements.value.length * 5
   const aspectRatio = dimensions.value.width / dimensions.value.height
   const sizeX = Math.ceil(Math.sqrt(amntCells * aspectRatio))
   const sizeY = Math.ceil(sizeX / aspectRatio)
@@ -102,7 +102,7 @@ onMounted(async () => {
   const grid = Array.from({length: sizeX}, () => Array(sizeY).fill(null));
 
 
-  const minRadius = 10
+  const minRadius = dimensions.value.width / 170
 
   const svg = d3.select(map.value).append("svg")
       .attr("width", dimensions.value.width)
@@ -136,7 +136,7 @@ onMounted(async () => {
     element.referenceCount = referenceCounts.get(element.id) || 0;
 
     // Add the radius size
-    element.radiusSize = element.referenceCount * 6 + minRadius
+    element.radiusSize = element.referenceCount * (minRadius * 0.66) + minRadius
 
     element.references.forEach(reference => {
       let relatedElement = elements.value.find(e => e.id === reference.related_item_id.id);
@@ -280,7 +280,7 @@ onMounted(async () => {
     const col = (getColorsOfCategory(mainCat)).highlight
 
 // Calculate boundary nodes
-    const margin = 20
+    const margin = minRadius + 1.5
 
     // for (let i = 0; i < grid.length; i++) {
     //   let col = grid[i];
@@ -338,7 +338,7 @@ onMounted(async () => {
 
 // Calculate concave hull
     const concaveHullPoints = avgNodes.map(node => [node.outlinePos.x, node.outlinePos.y]);
-    const concaveHull = concaveHullPoints.length ? concaveman(concaveHullPoints, 200) : [];
+    const concaveHull = concaveHullPoints.length ? concaveman(concaveHullPoints, 1.5) : [];
     if(concaveHull.length) concaveHull.pop()
 // Draw shape
     let firstPoint = true;
@@ -347,6 +347,7 @@ onMounted(async () => {
         const index = i % concaveHull.length;
         let currentPoint = concaveHull[index];
         let nextPoint = concaveHull[(index + 1) % concaveHull.length];
+        let prevPoint = concaveHull[index - 1] || concaveHull[concaveHull.length - 1]
 
         if(firstPoint) {
           firstPoint = false;
@@ -355,7 +356,7 @@ onMounted(async () => {
           outerShapePath.moveTo(xTo, yTo);
         } else {
           // Using a fixed radius of 30
-          outerShapePath.arcTo(currentPoint[0], currentPoint[1], nextPoint[0], nextPoint[1], 30);
+          outerShapePath.arcTo(currentPoint[0], currentPoint[1], nextPoint[0], nextPoint[1], margin);
         }
       }
     }
@@ -602,6 +603,9 @@ function createFakeData(numElements = 150) {
 }
 text {
   text-transform: uppercase;
+}
+.connected-items {
+  font-size: 20px;
 }
 
 </style>
