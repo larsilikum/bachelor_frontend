@@ -76,7 +76,7 @@ onMounted(async() => {
   })
   all.forEach(el =>  el.referenceCount = referenceCounts.get(el.id) || 0)
   all.sort((a,b) => - a.referenceCount + b.referenceCount)
-  const categories = ['image', 'text', 'symbol', 'person']
+  const categories = ['image', 'text', 'symbol', 'theory']
   for(const c in categories) {
     const key = categories[c]
     items.value[key] = all.filter(el => getCat(el) === key)
@@ -154,7 +154,6 @@ em {
 
 .category-previews {
   position: relative;
-  grid-column: 1 / span 6;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-column-gap: 20px;
@@ -204,5 +203,48 @@ p {
 }
 a {
   text-decoration: none;
+}
+@media screen and (max-width: 1000px) {
+  h1 {
+    margin-top: 0;
+  }
+  .description, p {
+    font-size: 24px;
+  }
+  h2 {
+    margin-bottom: 0.3em !important;
+  }
+  .text-block {
+
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  }
+  .text-block h2, .text-block p {
+    grid-column: 1 / 4 !important;
+    text-align: left !important;
+  }
+  .text-block p {
+    grid-row: 2 !important;
+  }
+
+  .category-intro {
+    width: 100%;
+    margin: 0 0 160px 0;
+  }
+
+  .category-previews {
+    display: block;
+  }
+  .category-previews h2 {
+    text-align: left;
+  }
+
+}
+
+@media screen and (max-width: 600px) {
+  .titles {
+    display: block;
+  }
+
 }
 </style>

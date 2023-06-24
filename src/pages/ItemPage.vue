@@ -76,10 +76,6 @@ article {
   grid-column: 1 / span 3;
 }
 
-.display {
-
-}
-
 #image-filter {
   width: 100%;
   height: calc(100vh - 76px);
@@ -137,7 +133,24 @@ p {
   animation-fill-mode: forwards;
   -webkit-text-stroke-width: 0;
 }
-
+@media screen and (max-width: 1000px) {
+  article {
+    display: flex;
+    flex-direction: column;
+  }
+  #image-filter {
+    order: 1;
+    position: static;
+    height: 75vw;
+    margin-bottom: 40px;
+  }
+  .info {
+    order: 2;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+}
 
 
 </style>

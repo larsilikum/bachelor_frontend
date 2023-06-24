@@ -19,7 +19,7 @@ export const useColorStore = defineStore('colors', {
                 bg: '#DCCBC9',
                 highlight: '#FE4936'
             },
-            person: {
+            theory: {
                 bg: '#D7CCB9',
                 highlight: '#E3FA5B'
             },

@@ -22,7 +22,7 @@ onMounted(() => {
       const canvas = p5.createCanvas(container.value.clientWidth, container.value.clientHeight)
       canvas.parent(`canvas-container-${props.index}`)
       p5.frameRate(30)
-      p5.noiseSeed(Math.random()*timeNow)
+      p5.noiseSeed(205)
       mX = Math.floor(p5.random(0,1800))
       mY = Math.floor(p5.random(0,100))
       xMax = Math.ceil(p5.width / spacing)

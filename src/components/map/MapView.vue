@@ -37,6 +37,8 @@ const dimensions = ref({
 colorStore.setBgColor('defaultCol')
 
 onMounted(async () => {
+  const amntCellsFaktor = 2
+
   elements.value = JSON.parse(JSON.stringify(await store.getItems))
   const categories = await store.getCategories
   // elements.value = createFakeData(80)
@@ -44,11 +46,11 @@ onMounted(async () => {
   //   {title: 'image', parentCategory: null},
   //   {title: 'text', parentCategory: null},
   //   {title: 'symbol', parentCategory: null},
-  //   {title: 'person', parentCategory: null},
-  //   {title: 'test 1', parentCategory: {title: 'person', parentCategory: null}},
-  //   {title: 'test 2', parentCategory: {title: 'person', parentCategory: null}},
-  //   {title: 'test 3', parentCategory: {title: 'person', parentCategory: null}},
-  //   {title: 'test 4', parentCategory: {title: 'person', parentCategory: null}},
+  //   {title: 'theory', parentCategory: null},
+  //   {title: 'test 1', parentCategory: {title: 'theory', parentCategory: null}},
+  //   {title: 'test 2', parentCategory: {title: 'theory', parentCategory: null}},
+  //   {title: 'test 3', parentCategory: {title: 'theory', parentCategory: null}},
+  //   {title: 'test 4', parentCategory: {title: 'theory', parentCategory: null}},
   //   {title: 'test 5', parentCategory: {title: 'image', parentCategory: null}},
   //   {title: 'test 6', parentCategory: {title: 'image', parentCategory: null}},
   //   {title: 'test 7', parentCategory: {title: 'image', parentCategory: null}},
@@ -69,17 +71,20 @@ onMounted(async () => {
   dimensions.value.height = map.value.clientHeight
 
   const subCategoryCount = categories.reduce((acc, cat) => {
-    let key = cat.parentCategory ? cat.parentCategory.title : cat.title;
-    acc[key] = (acc[key] || [])
-    acc[key].push(cat)
+    if(cat.parentCategory) {
+      let key = cat.parentCategory.title;
+      acc[key] = (acc[key] || [])
+      acc[key].push(cat)
 
+    }
     return acc;
+
   }, {});
 
   const categoryCounts = {
     text: 0,
     image: 0,
-    person: 0,
+    theory: 0,
     symbol: 0
   }
 
@@ -93,7 +98,7 @@ onMounted(async () => {
     element.connectedElementIds = element.references.map(ref => ref.related_item_id.id);
   })
 
-  const amntCells = elements.value.length * 5
+  const amntCells = elements.value.length * amntCellsFaktor
   const aspectRatio = dimensions.value.width / dimensions.value.height
   const sizeX = Math.ceil(Math.sqrt(amntCells * aspectRatio))
   const sizeY = Math.ceil(sizeX / aspectRatio)
@@ -102,7 +107,7 @@ onMounted(async () => {
   const grid = Array.from({length: sizeX}, () => Array(sizeY).fill(null));
 
 
-  const minRadius = dimensions.value.width / 170
+  const minRadius = Math.max(dimensions.value.width / 170, 8)
 
   const svg = d3.select(map.value).append("svg")
       .attr("width", dimensions.value.width)
@@ -152,7 +157,6 @@ onMounted(async () => {
     catCountsArray.push({title: key, len: categoryCounts[key]})
   }
   catCountsArray.sort((a,b) => b.len - a.len)
-  console.log(catCountsArray)
   const amntEls = elements.value.length
   const amntFirstHalf = catCountsArray[0].len + catCountsArray[2].len
   const amntSecHalf = catCountsArray[1].len + catCountsArray[3].len
@@ -186,7 +190,6 @@ onMounted(async () => {
       bottom: dimensions.value.height
     },
   }
-  console.log(categoryQuadrants)
 
   for (const key in categoryQuadrants) {
     const count = subCategoryCount[key].length
@@ -228,9 +231,8 @@ onMounted(async () => {
           (e) => e.id === reference.related_item_id.id
       );
       if (relatedElement) {
-        let relatedCategory = relatedElement.category.parentCategory
-            ? relatedElement.category.parentCategory.title
-            : relatedElement.category.title;
+        let relatedCategory = relatedElement.category.title
+        console.log(relatedCategory)
         xSum += categoryBasePositions[relatedCategory].x;
         ySum += categoryBasePositions[relatedCategory].y;
         count++;
@@ -273,122 +275,94 @@ onMounted(async () => {
 
   for (const category in categories) {
     const c = categories[category]
-    let boundaryNodes = [];
-    let outerShapePath = d3.path();
-    const title = c.title
-    const mainCat = c.parentCategory ? c.parentCategory.title : c.title
-    const col = (getColorsOfCategory(mainCat)).highlight
+    if(c.parentCategory) {
+      let boundaryNodes = [];
+      let outerShapePath = d3.path();
+      const title = c.title
+      const mainCat = c.parentCategory ? c.parentCategory.title : c.title
+      const col = (getColorsOfCategory(mainCat)).highlight
 
 // Calculate boundary nodes
-    const margin = minRadius + 1.5
+      const margin = minRadius + 1.5
 
-    // for (let i = 0; i < grid.length; i++) {
-    //   let col = grid[i];
-    //   col = col.filter(el => el && el.category.title === title)
-    //   let minNode = col[d3.minIndex(col, d => d ? d.y : Infinity)];
-    //   let maxNode = col[d3.maxIndex(col, d => d ? d.y : -1)];
-    //   let minN, maxN
-    //   if( minNode ) {
-    //     minN = JSON.parse(JSON.stringify(minNode))
-    //     maxN = JSON.parse(JSON.stringify(maxNode))
-    //     const minRad = margin + minN.radiusSize
-    //     const maxRad = margin + maxN.radiusSize
-    //     minN.outlinePos = {x: minN.x,y:  minN.y - minRad}
-    //     maxN.outlinePos = {x: maxN.x,y:  maxN.y + maxRad}
-    //     boundaryNodes.push(minN, maxN)
-    //   }
-    // }
-    // for (let i = 0; i < grid[0].length; i++) {
-    //   let row = grid.map(col => col[i]);
-    //   row = row.filter(el => el && el.category.title === title)
-    //   let minNode = row[d3.minIndex(row, d => d ? d.x : Infinity)];
-    //   let maxNode = row[d3.maxIndex(row, d => d ? d.x : -1)];
-    //   let minN, maxN
-    //   if( minNode ) {
-    //     minN = JSON.parse(JSON.stringify(minNode))
-    //     maxN = JSON.parse(JSON.stringify(maxNode))
-    //     const minRad = margin + minN.radiusSize
-    //     const maxRad = margin + maxN.radiusSize
-    //     minN.outlinePos = {x: minN.x - minRad,y:  minN.y}
-    //     maxN.outlinePos = {x: maxN.x + maxRad,y:  maxN.y}
-    //     boundaryNodes.push(minN, maxN)
-    //   }
-    // }
-    for (const el in elements.value) {
-      const e = elements.value[el]
-      if(e.category.title === title) {
-        const xE = e.x
-        const yE = e.y
-        const length = e.radiusSize + margin
-        const p1 = JSON.parse(JSON.stringify(e))
-        const p2 = JSON.parse(JSON.stringify(e))
-        const p3 = JSON.parse(JSON.stringify(e))
-        const p4 = JSON.parse(JSON.stringify(e))
-        p1.outlinePos = {x: xE + length, y: yE + length}
-        p2.outlinePos = {x: xE - length, y: yE - length}
-        p3.outlinePos = {x: xE - length, y: yE + length}
-        p4.outlinePos = {x: xE + length, y: yE - length}
-        boundaryNodes.push(p1,p2,p3,p4)
+
+      for (const el in elements.value) {
+        const e = elements.value[el]
+        if(e.category.title === title) {
+          const xE = e.x
+          const yE = e.y
+          const length = e.radiusSize + margin
+          const p1 = JSON.parse(JSON.stringify(e))
+          const p2 = JSON.parse(JSON.stringify(e))
+          const p3 = JSON.parse(JSON.stringify(e))
+          const p4 = JSON.parse(JSON.stringify(e))
+          p1.outlinePos = {x: xE + length, y: yE + length}
+          p2.outlinePos = {x: xE - length, y: yE - length}
+          p3.outlinePos = {x: xE - length, y: yE + length}
+          p4.outlinePos = {x: xE + length, y: yE - length}
+          boundaryNodes.push(p1,p2,p3,p4)
+
+        }
 
       }
 
-    }
-
-    const avgNodes = boundaryNodes
+      const avgNodes = boundaryNodes
 
 // Calculate concave hull
-    const concaveHullPoints = avgNodes.map(node => [node.outlinePos.x, node.outlinePos.y]);
-    const concaveHull = concaveHullPoints.length ? concaveman(concaveHullPoints, 1.5) : [];
-    if(concaveHull.length) concaveHull.pop()
+      const concaveHullPoints = avgNodes.map(node => [node.outlinePos.x, node.outlinePos.y]);
+      const concaveHull = concaveHullPoints.length ? concaveman(concaveHullPoints, 1.5) : [];
+      if(concaveHull.length) concaveHull.pop()
 // Draw shape
-    let firstPoint = true;
-    if(concaveHull.length) {
-      for (let i = 0; i <= concaveHull.length; i++) {
-        const index = i % concaveHull.length;
-        let currentPoint = concaveHull[index];
-        let nextPoint = concaveHull[(index + 1) % concaveHull.length];
-        let prevPoint = concaveHull[index - 1] || concaveHull[concaveHull.length - 1]
+      let firstPoint = true;
+      if(concaveHull.length) {
+        for (let i = 0; i <= concaveHull.length; i++) {
+          const index = i % concaveHull.length;
+          let currentPoint = concaveHull[index];
+          let nextPoint = concaveHull[(index + 1) % concaveHull.length];
+          let prevPoint = concaveHull[index - 1] || concaveHull[concaveHull.length - 1]
 
-        if(firstPoint) {
-          firstPoint = false;
-          let xTo = currentPoint[0] + (- currentPoint[0] + nextPoint[0]) /2
-          let yTo = currentPoint[1] + (- currentPoint[1] + nextPoint[1]) /2
-          outerShapePath.moveTo(xTo, yTo);
-        } else {
-          // Using a fixed radius of 30
-          outerShapePath.arcTo(currentPoint[0], currentPoint[1], nextPoint[0], nextPoint[1], margin);
+          if(firstPoint) {
+            firstPoint = false;
+            let xTo = currentPoint[0] + (- currentPoint[0] + nextPoint[0]) /2
+            let yTo = currentPoint[1] + (- currentPoint[1] + nextPoint[1]) /2
+            outerShapePath.moveTo(xTo, yTo);
+          } else {
+            // Using a fixed radius of 30
+            outerShapePath.arcTo(currentPoint[0], currentPoint[1], nextPoint[0], nextPoint[1], margin);
+          }
         }
       }
-    }
 
 
-    outerShapePath.closePath();
+      outerShapePath.closePath();
 
 
 
 
-    const avgX = avgNodes.reduce(function (p, c, i) {
-      return p + (c.x - p) / (i + 1)
-    }, 0)
-    const avgY = avgNodes.reduce(function (p, c, i) {
-      return p + (c.y - p) / (i + 1)
-    }, 0)
-    svg.append("text")
-        .text(title)
-        .attr("x", avgX || categoryBasePositions[title].x)
-        .attr("y", avgY || categoryBasePositions[title].y)
-        .attr("font-family", "Lunchtype, sans-serif")  // Set the font as you need
-        .attr("font-size", Object.keys(categoryQuadrants).includes(title) ? "48px" : "20px")
-        .attr("text-anchor", "middle")
-        .attr("fill", col)
-        .attr("pointer-events", "none")
+      const avgX = avgNodes.reduce(function (p, c, i) {
+        return p + (c.x - p) / (i + 1)
+      }, 0)
+      const avgY = avgNodes.reduce(function (p, c, i) {
+        return p + (c.y - p) / (i + 1)
+      }, 0)
+      svg.append("text")
+          .text(title)
+          .attr("x", avgX || categoryBasePositions[title].x)
+          .attr("y", avgY || categoryBasePositions[title].y)
+          .attr("font-family", "Lunchtype, sans-serif")  // Set the font as you need
+          .attr("font-size", Object.keys(categoryQuadrants).includes(title) ? "48px" : "20px")
+          .attr("text-anchor", "middle")
+          .attr("fill", col)
+          .attr("pointer-events", "none")
 
 // Add shape to your SVG
-    svg.append('path')
-        .attr("d", outerShapePath.toString())
-        .attr("fill", "none")
-        .attr("stroke", col)
-        .attr("stroke-width", 2)
+      svg.append('path')
+          .attr("d", outerShapePath.toString())
+          .attr("fill", "none")
+          .attr("stroke", col)
+          .attr("stroke-width", 2)
+    }
+
 
     // svg.selectAll("circle2")
     //     .data(concaveHull)  // bind elements to circles
@@ -514,11 +488,11 @@ function createFakeData(numElements = 150) {
       {title: 'image', parentCategory: null},
     {title: 'text', parentCategory: null},
     {title: 'symbol', parentCategory: null},
-    {title: 'person', parentCategory: null},
-    {title: 'test 1', parentCategory: {title: 'person', parentCategory: null}},
-    {title: 'test 2', parentCategory: {title: 'person', parentCategory: null}},
-    {title: 'test 3', parentCategory: {title: 'person', parentCategory: null}},
-    {title: 'test 4', parentCategory: {title: 'person', parentCategory: null}},
+    {title: 'theory', parentCategory: null},
+    {title: 'test 1', parentCategory: {title: 'theory', parentCategory: null}},
+    {title: 'test 2', parentCategory: {title: 'theory', parentCategory: null}},
+    {title: 'test 3', parentCategory: {title: 'theory', parentCategory: null}},
+    {title: 'test 4', parentCategory: {title: 'theory', parentCategory: null}},
     {title: 'test 5', parentCategory: {title: 'image', parentCategory: null}},
     {title: 'test 6', parentCategory: {title: 'image', parentCategory: null}},
     {title: 'test 7', parentCategory: {title: 'image', parentCategory: null}},
@@ -607,5 +581,12 @@ text {
 .connected-items {
   font-size: 20px;
 }
-
+@media screen and (max-width: 1000px) {
+  #map-container {
+    flex-direction: column;
+  }
+  #side {
+    display: none;
+  }
+}
 </style>
