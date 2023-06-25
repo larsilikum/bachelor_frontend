@@ -33,7 +33,7 @@
       <div class="category-previews" v-for="(its,cat,i) in items">
         <h2>{{cat}}</h2>
         <div class="titles">
-          <template  v-for="(item, i) in its"><router-link :to="`/item/${item.id}`" class="title" :style="`--color: ${(colorStore.getColorsOfCategory(cat)).highlight}`" v-if="i < 10"><span class="name">{{item.title}}</span><span>→</span></router-link></template>
+          <template  v-for="(item, i) in its"><router-link :to="`/item/${item.id}`" class="title" :style="`--color: ${(colorStore.getColorsOfCategory(cat)).highlight}`" v-if="i < 6"><span class="name">{{item.title}}</span><span>→</span></router-link></template>
         </div>
       </div>
     </template>

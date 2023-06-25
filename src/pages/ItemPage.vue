@@ -8,9 +8,9 @@
       </p>
       <p class="meta">
         <span v-show="item.uploaded">POSTED: {{ item.uploaded }}<br></span>
-        SOURCE: <a v-if="item.source" :href="item.source.url" target="_blank">{{ item.source.title }}</a><br>
+        <span v-show="item.source">SOURCE: <a v-if="item.source" :href="item.source.url" target="_blank">{{ item.source.title }}</a><br></span>
         UPLOADED: {{ new Date(item.date_created).toLocaleDateString('en-GB', dateOptions) }} <br>
-        Category: {{item.category.title}}
+        <span class="meta-flex"><span>Category: </span><span>{{item.category.title}}</span></span>
       </p>
       <p class="description" v-html="item.description">
       </p>
@@ -114,6 +114,11 @@ p {
   text-align-last: justify;
 }
 
+.meta-flex {
+  display: flex;
+  justify-content: space-between;
+}
+
 .description {
   text-align: justify;
   margin-bottom: 80px;
@@ -126,6 +131,7 @@ p {
 :deep(strong) {
   font-weight: normal;
   -webkit-text-stroke-width: 0.56em; /* 10px/18px */
+  paint-order: stroke fill;
 }
 
 :deep(strong:hover) {

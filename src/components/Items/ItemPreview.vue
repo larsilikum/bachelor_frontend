@@ -4,6 +4,7 @@
       <image-filter :display="item.display" spacing="22" :index="index"
                     :cat="item.category.parentCategory ? item.category.parentCategory.title : item.category.title"/>
     </div>
+    <div class="uppercase cat"><span class="label">Category: </span><span class="value">{{item.category.title}}</span></div>
     <p v-show="show" class="description" v-html="item.description"></p>
     <button @click.prevent="showDescription">{{ show ? 'hide' : 'show' }} description</button>
   </router-link>
@@ -39,9 +40,9 @@ button {
   font-family: Lunchtype, sans-serif;
   font-size: 1rem;
   border: none;
-  margin-top: 1rem;
   text-transform: uppercase;
   cursor: pointer;
+  padding: 0;
 }
 
 button:hover {
@@ -51,6 +52,20 @@ button:hover {
 .description {
   text-align: justify;
   margin-bottom: 0;
+  clear: both;
+}
+.cat {
+  margin: 1em 0;
+  display: flex;
+  justify-content: space-between;
+  line-height: 1;
+  width: 100%;
+}
+
+.label {
+}
+
+.value {
 }
 
 </style>

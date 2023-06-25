@@ -6,6 +6,12 @@
       <template v-if="connections.length">
         <span v-for="connection in connections" class="connected-items">{{ connection.related_item_id.title }}<br></span>
       </template>
+      <div class="legend">
+        <p class="uppercase" id="text">Text</p>
+        <p class="uppercase" id="symbol">Symbol</p>
+        <p class="uppercase" id="image">Image</p>
+        <p class="uppercase" id="theory">Theory</p>
+      </div>
     </aside>
     <div id="map" ref="map"></div>
   </div>
@@ -38,34 +44,10 @@ colorStore.setBgColor('defaultCol')
 
 onMounted(async () => {
   const amntCellsFaktor = 2
+  const divisorConnections = 5
 
   elements.value = JSON.parse(JSON.stringify(await store.getItems))
   const categories = await store.getCategories
-  // elements.value = createFakeData(80)
-  // const categories = [
-  //   {title: 'image', parentCategory: null},
-  //   {title: 'text', parentCategory: null},
-  //   {title: 'symbol', parentCategory: null},
-  //   {title: 'theory', parentCategory: null},
-  //   {title: 'test 1', parentCategory: {title: 'theory', parentCategory: null}},
-  //   {title: 'test 2', parentCategory: {title: 'theory', parentCategory: null}},
-  //   {title: 'test 3', parentCategory: {title: 'theory', parentCategory: null}},
-  //   {title: 'test 4', parentCategory: {title: 'theory', parentCategory: null}},
-  //   {title: 'test 5', parentCategory: {title: 'image', parentCategory: null}},
-  //   {title: 'test 6', parentCategory: {title: 'image', parentCategory: null}},
-  //   {title: 'test 7', parentCategory: {title: 'image', parentCategory: null}},
-  //   {title: 'test 8', parentCategory: {title: 'image', parentCategory: null}},
-  //   {title: 'test 9', parentCategory: {title: 'image', parentCategory: null}},
-  //   {title: 'test 10', parentCategory: {title: 'text', parentCategory: null}},
-  //   {title: 'test 11', parentCategory: {title: 'text', parentCategory: null}},
-  //   {title: 'test 12', parentCategory: {title: 'text', parentCategory: null}},
-  //   {title: 'test 13', parentCategory: {title: 'text', parentCategory: null}},
-  //   {title: 'test 14', parentCategory: {title: 'text', parentCategory: null}},
-  //   {title: 'test 15', parentCategory: {title: 'symbol', parentCategory: null}},
-  //   {title: 'test 16', parentCategory: {title: 'symbol', parentCategory: null}},
-  //   {title: 'test 17', parentCategory: {title: 'symbol', parentCategory: null}},
-  //   {title: 'test 18', parentCategory: {title: 'symbol', parentCategory: null}}
-  // ]
 
   dimensions.value.width = map.value.clientWidth
   dimensions.value.height = map.value.clientHeight
@@ -158,11 +140,11 @@ onMounted(async () => {
   }
   catCountsArray.sort((a,b) => b.len - a.len)
   const amntEls = elements.value.length
-  const amntFirstHalf = catCountsArray[0].len + catCountsArray[2].len
-  const amntSecHalf = catCountsArray[1].len + catCountsArray[3].len
+  const amntFirstHalf = catCountsArray[0].len + catCountsArray[1].len
+  const amntSecHalf = catCountsArray[2].len + catCountsArray[3].len
   const widthFirstHalf = ((amntFirstHalf / amntEls)) * dimensions.value.width
   const height0 = ((catCountsArray[0].len / amntFirstHalf)) * dimensions.value.height
-  const height1 = ((catCountsArray[1].len / amntSecHalf)) * dimensions.value.height
+  const height1 = ((catCountsArray[2].len / amntSecHalf)) * dimensions.value.height
 
   const categoryQuadrants = {
     [catCountsArray[0].title]: {
@@ -171,13 +153,13 @@ onMounted(async () => {
       right: widthFirstHalf,
       bottom: height0
     },
-    [catCountsArray[1].title]: {
+    [catCountsArray[2].title]: {
       top: 0,
       left: widthFirstHalf,
       right: dimensions.value.width,
       bottom: height1
     },
-    [catCountsArray[2].title]: {
+    [catCountsArray[1].title]: {
       top: height0,
       left: 0,
       right: widthFirstHalf,
@@ -239,8 +221,8 @@ onMounted(async () => {
       }
     });
     let avgPosition = {
-      x: count > 0 ? basePosition.x + ((xSum / count) - basePosition.x) / 6 : basePosition.x + (5-element.title.length) *5,
-      y: count > 0 ? basePosition.y + ((ySum / count) - basePosition.y) / 6 : basePosition.y + (7-element.title.length) *7,
+      x: count > 0 ? basePosition.x + ((xSum / count) - basePosition.x) / divisorConnections : basePosition.x + (5-element.title.length) *5,
+      y: count > 0 ? basePosition.y + ((ySum / count) - basePosition.y) / divisorConnections : basePosition.y + (7-element.title.length) *7,
     };
     // let avgPosition = {
     //   x: basePosition.x,
@@ -383,7 +365,7 @@ onMounted(async () => {
       .attr("y", d => d.y)
       .text(d => d.category)
       .attr("font-family", "Lunchtype, sans-serif")  // Set the font as you need
-      .attr("font-size", d => Object.keys(categoryQuadrants).includes(d.category) ? "70px" : "20px")
+      .attr("font-size", "20px")
       .attr("text-anchor", "middle")
       .attr("fill", d => (getColorsOfCategory(d.category)).highlight)
       .attr("pointer-events", "none")
@@ -564,6 +546,32 @@ function createFakeData(numElements = 150) {
 #side {
   flex: 1;
   flex-shrink: 0;
+}
+
+.legend {
+  position: absolute;
+  bottom: 10px;
+}
+
+.legend p {
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 20px;
+  white-space: nowrap;
+  margin-bottom: 0 !important;
+}
+
+#text {
+  outline: 2px solid #1EB5E4;
+}
+#symbol {
+  outline: 2px solid #FE4936;
+}
+#image {
+  outline: 2px solid #6EBD1E;
+}
+#theory {
+  outline: 2px solid #E3FA5B;
 }
 
 #title {
