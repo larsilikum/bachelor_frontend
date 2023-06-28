@@ -9,7 +9,7 @@ import {useColorStore} from "../../store/bg.js";
 
 const provider = 'http://localhost:8055'
 const imgApi = provider + '/assets/'
-const props = defineProps(['display', 'spacing', 'index', 'cat'])
+const props = defineProps(['display', 'spacing', 'index', 'cat', 'preview'])
 const container = ref(null)
 const seed = Math.random()*100
 const bgStore = useColorStore()

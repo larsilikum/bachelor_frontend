@@ -1,7 +1,7 @@
 <template>
   <router-link :to="`/item/${item.id}`">
     <div class="preview-image">
-      <image-filter :display="item.display" spacing="22" :index="index"
+      <image-filter :display="item.display" spacing="22" :index="index" :preview="true"
                     :cat="item.category.parentCategory ? item.category.parentCategory.title : item.category.title"/>
     </div>
     <div class="uppercase cat"><span class="label">Category: </span><span class="value">{{item.category.title}}</span></div>
