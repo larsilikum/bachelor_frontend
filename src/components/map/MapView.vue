@@ -43,8 +43,8 @@ const dimensions = ref({
 colorStore.setBgColor('defaultCol')
 
 onMounted(async () => {
-  const amntCellsFaktor = 2
-  const divisorConnections = 5
+  const amntCellsFaktor = 1.6
+  const divisorConnections = 4
 
   elements.value = JSON.parse(JSON.stringify(await store.getItems))
   const categories = await store.getCategories
@@ -292,7 +292,7 @@ onMounted(async () => {
 
 // Calculate concave hull
       const concaveHullPoints = avgNodes.map(node => [node.outlinePos.x, node.outlinePos.y]);
-      const concaveHull = concaveHullPoints.length ? concaveman(concaveHullPoints, 1.5) : [];
+      const concaveHull = concaveHullPoints.length ? concaveman(concaveHullPoints, 1.2) : [];
       if(concaveHull.length) concaveHull.pop()
 // Draw shape
       let firstPoint = true;

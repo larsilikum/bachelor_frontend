@@ -121,7 +121,8 @@ h1, h2 {
 h1 {
   font-size: 16vw;
   text-align: right;
-  margin-top: -20px;
+  margin: -20px -10px 0 0;
+
 }
 
 h2 {
